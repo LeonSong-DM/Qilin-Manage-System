@@ -13,6 +13,7 @@ from db.base import Base, TimeStampMixin
 class Order(TimeStampMixin, Base):
     __tablename__ = "order"
 
+    # 订单编号: QLORDYYYYMMDDXXX
     order_id: Mapped[str] = mapped_column(String(16), primary_key=True)
 
     goods_processing_method_id: Mapped[int] = mapped_column(Integer(), nullable=False)
@@ -24,7 +25,7 @@ class Order(TimeStampMixin, Base):
         DateTime(timezone=True), nullable=True
     )
     goods_count: Mapped[int] = mapped_column(Integer(), nullable=False)
-    goods_unit: Mapped[str] = mapped_column(String(8), nullable=False)
+    goods_unit_id: Mapped[str] = mapped_column(String(3), nullable=False)
     goods_weight: Mapped[float] = mapped_column(Float(), nullable=False)
 
     goods_inbound_img1_path: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -38,4 +39,4 @@ class Order(TimeStampMixin, Base):
     contact_number: Mapped[str] = mapped_column(String(11), nullable=True)
     client_address: Mapped[str] = mapped_column(String(255), nullable=True)
 
-    created_user_id: Mapped[int] = mapped_column(Integer(), nullable=False)
+    created_user_id: Mapped[str] = mapped_column(String(14), nullable=False)

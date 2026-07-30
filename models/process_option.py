@@ -10,6 +10,7 @@ from db.base import Base, TimeStampMixin
 
 class ProcessOption(TimeStampMixin, Base):
     __tablename__ = "process_option"
+
     process_option_id: Mapped[int] = mapped_column(
         Integer(), primary_key=True, autoincrement=True
     )

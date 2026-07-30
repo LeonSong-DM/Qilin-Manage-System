@@ -1,0 +1,16 @@
+# @Author: LeonSong
+# @Date:   2026-07-30 17:45
+# @Description: Model of unit
+
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from db.base import Base, TimeStampMixin
+
+
+class Unit(TimeStampMixin, Base):
+    __tablename__ = "unit"
+
+    id: Mapped[str] = mapped_column(String(3))
+    name: Mapped[str] = mapped_column(String(8))
+    created_user_id: Mapped[str] = mapped_column(String(14), nullable=False)

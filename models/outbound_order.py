@@ -11,6 +11,7 @@ from db.base import Base, TimeStampMixin
 class OutBoundRecord(TimeStampMixin, Base):
     __tablename__ = "out_bound_order"
 
+    #  出库编号: QLOUTYYYYMMDDXXX
     outbound_record_id: Mapped[str] = mapped_column(String(12), primary_key=True)
     order_id: Mapped[str] = mapped_column(String(12), nullable=False)
     outbound_count: Mapped[int] = mapped_column(Integer(), nullable=False)
