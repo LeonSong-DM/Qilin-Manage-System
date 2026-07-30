@@ -11,6 +11,6 @@ from db.base import Base, TimeStampMixin
 class GoodsSpecifications(TimeStampMixin, Base):
     __tablename__ = "goods_specification"
 
-    id: Mapped[str] = mapped_column(String(3))  # XXX
+    id: Mapped[str] = mapped_column(String(3), primary_key=True)  # XXX
     name: Mapped[str] = mapped_column(String(32))
     user_id: Mapped[str] = mapped_column(String(14))

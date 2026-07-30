@@ -12,7 +12,7 @@ class OrderAttachments(TimeStampMixin, Base):
     __tablename__ = "order_attachment"
 
     # attachment id: QLAYYYYMMDDXXX
-    id: Mapped[str] = mapped_column(String())
-    type: Mapped[str] = mapped_column(String())
-    path: Mapped[str] = mapped_column(String())
+    id: Mapped[str] = mapped_column(String(14), primary_key=True)
+    type: Mapped[str] = mapped_column(String(32))
+    path: Mapped[str] = mapped_column(String(255))
     order_id: Mapped[str] = mapped_column(String(16))

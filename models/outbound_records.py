@@ -18,4 +18,4 @@ class OutBoundRecords(TimeStampMixin, Base):
     outbound_unit_id: Mapped[str] = mapped_column(String(3), nullable=False)
 
     outbound_weight: Mapped[float] = mapped_column(Float(), nullable=False)
-    outbound_user_id: Mapped[str] = mapped_column(String(), nullable=False)
+    user_id: Mapped[str] = mapped_column(String(14), nullable=False)
