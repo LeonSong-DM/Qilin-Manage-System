@@ -16,6 +16,7 @@ class ProductionSchedule(TimeStampMixin, Base):
     # 排产编号: QLPSYYYYMMDDXXX
     id: Mapped[str] = mapped_column(String(12), primary_key=True)
     order_id: Mapped[str] = mapped_column(String(12), nullable=False)
-    count: Mapped[int] = mapped_column(Integer(), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     schedule_date: Mapped[datetime] = mapped_column(DateTime())  # 具体到日
+    schedule_order: Mapped[int] = mapped_column(Integer())  # 用于实现排产拖拽
     operate_user_id: Mapped[str] = mapped_column(String())

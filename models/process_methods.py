@@ -5,11 +5,11 @@
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db.base import Base
+from db.base import Base, TimeStampMixin
 
 
-class ProcessMethod(Base):
-    __tablename__ = "process_method"
+class ProcessMethods(TimeStampMixin, Base):
+    __tablename__ = "process_methods"
 
-    process_method_id: Mapped[int] = mapped_column(Integer(), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     process_method: Mapped[str] = mapped_column(String(16), nullable=False)

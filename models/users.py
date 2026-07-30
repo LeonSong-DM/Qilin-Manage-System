@@ -8,12 +8,12 @@ from sqlalchemy.orm import Mapped, mapped_column
 from db.base import Base, TimeStampMixin
 
 
-class User(TimeStampMixin, Base):
+class Users(TimeStampMixin, Base):
     """用户信息"""
 
-    __tablename__ = "user"
+    __tablename__ = "users"
 
-    user_id: Mapped[str] = mapped_column(
+    id: Mapped[str] = mapped_column(
         String(14), primary_key=True
     )  # 用户编号：QLUYYYYMMDDXXX
 

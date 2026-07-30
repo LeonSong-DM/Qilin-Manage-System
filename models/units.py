@@ -1,6 +1,6 @@
 # @Author: LeonSong
 # @Date:   2026-07-30 17:45
-# @Description: Model of unit
+# @Description: Model of units
 
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from db.base import Base, TimeStampMixin
 
 
-class Unit(TimeStampMixin, Base):
+class Units(TimeStampMixin, Base):
     __tablename__ = "unit"
 
     id: Mapped[str] = mapped_column(String(3))
