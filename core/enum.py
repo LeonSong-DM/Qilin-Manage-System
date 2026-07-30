@@ -5,6 +5,12 @@
 from enum import Enum
 
 
+# 用户角色
+class UserRole(Enum):
+    ADMIN = "admin"
+    EMPLOYEE = "employee"
+
+
 # 订单状态
 class OrderStatus(Enum):
     SCHEDULING = "scheduling"  # 待排产

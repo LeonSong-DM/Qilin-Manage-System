@@ -2,9 +2,11 @@
 # @Date:   2026-07-29 21:13
 # @Description: System user model.
 
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
+from core.enum import UserRole
 from db.base import Base, TimeStampMixin
 
 
@@ -20,4 +22,4 @@ class Users(TimeStampMixin, Base):
     name: Mapped[str] = mapped_column(String(16), nullable=False)
     phone_number: Mapped[str] = mapped_column(String(11), nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[str]
+    role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), nullable=False)
