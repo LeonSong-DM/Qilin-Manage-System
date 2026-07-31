@@ -14,6 +14,7 @@ from models import (  # noqa: F401
     process_methods,
     process_options,
     production_schedule,
+    number_sequence,
     units,
     users,
 )

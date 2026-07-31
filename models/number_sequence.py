@@ -13,6 +13,8 @@ from db.base import Base
 
 
 class NumberSequence(Base):
+    __tablename__ = "number_sequence"
+
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     date: Mapped[datetime.date] = mapped_column(Date())
     type: Mapped[NumberType] = mapped_column(SQLEnum(NumberType))
