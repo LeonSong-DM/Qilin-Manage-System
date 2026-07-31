@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class Settings:
+class settings:
     DATABASE_URL = os.getenv("DATABASE_URL", "")
 
     DATABASE_LOG_ECHO = os.getenv("DATABASE_LOG_ECHO") == "1"
