@@ -35,3 +35,13 @@ class OrderPriority(Enum):
     P1 = "p1"
     P2 = "p2"
     P3 = "p3"
+
+
+class NumberType(Enum):
+    """维护编号序列"""
+
+    USER = "user"
+    PRODUCTION = "production"
+    ATTACHMENT = "attachment"
+    ORDER = "order"
+    OUTBOUND = "outbound"
