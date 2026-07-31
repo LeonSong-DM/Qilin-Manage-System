@@ -17,5 +17,5 @@ class OutBoundRecords(TimeStampMixin, Base):
     outbound_quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     outbound_unit_id: Mapped[str] = mapped_column(String(3), nullable=False)
 
-    outbound_weight: Mapped[float] = mapped_column(Float(), nullable=False)
+    outbound_weight: Mapped[int] = mapped_column(Integer(), nullable=False)
     created_by: Mapped[str] = mapped_column(String(14), nullable=False)
