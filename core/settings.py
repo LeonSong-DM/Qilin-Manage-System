@@ -13,3 +13,7 @@ class Settings:
     DATABASE_URL = os.getenv("DATABASE_URL", "")
 
     DATABASE_LOG_ECHO = os.getenv("DATABASE_LOG_ECHO") == "1"
+
+    JWT_ACCESS_TOKEN_DURATION = int(
+        os.getenv("JWT_ACCESS_TOKEN_DURATION", str(60 * 24))
+    )  # minute
