@@ -16,3 +16,4 @@ class Clinets(TimeStampMixin, Base):
     client_name: Mapped[str] = mapped_column(String(64), nullable=False)
     contact_phone_number: Mapped[str] = mapped_column(String(11), nullable=True)
     address: Mapped[str] = mapped_column(String(255), nullable=True)
+    created_by: Mapped[str] = mapped_column(String(14), nullable=False)

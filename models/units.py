@@ -13,4 +13,4 @@ class Units(TimeStampMixin, Base):
 
     id: Mapped[str] = mapped_column(String(3), primary_key=True)
     name: Mapped[str] = mapped_column(String(8))
-    created_user_id: Mapped[str] = mapped_column(String(14), nullable=False)
+    created_by: Mapped[str] = mapped_column(String(14), nullable=False)

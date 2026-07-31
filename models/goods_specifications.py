@@ -13,4 +13,4 @@ class GoodsSpecifications(TimeStampMixin, Base):
 
     id: Mapped[str] = mapped_column(String(3), primary_key=True)  # XXX
     name: Mapped[str] = mapped_column(String(32))
-    user_id: Mapped[str] = mapped_column(String(14))
+    created_by: Mapped[str] = mapped_column(String(14))

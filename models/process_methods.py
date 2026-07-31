@@ -13,3 +13,4 @@ class ProcessMethods(TimeStampMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
     process_method: Mapped[str] = mapped_column(String(16), nullable=False)
+    created_by: Mapped[str] = mapped_column(String(14))

@@ -6,7 +6,7 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from core.enum import UserRole
+from core.enum import UserRole, UserStatus
 from db.base import Base, TimeStampMixin
 
 
@@ -23,3 +23,7 @@ class Users(TimeStampMixin, Base):
     phone_number: Mapped[str] = mapped_column(String(11), nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), nullable=False)
+    status: Mapped[UserStatus] = mapped_column(
+        SQLEnum(UserStatus), nullable=False, default=UserStatus.NORMAL
+    )
+    created_by: Mapped[str] = mapped_column(String(14), nullable=False)

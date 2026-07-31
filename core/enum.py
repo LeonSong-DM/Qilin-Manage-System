@@ -11,6 +11,11 @@ class UserRole(Enum):
     EMPLOYEE = "employee"
 
 
+class UserStatus(Enum):
+    NORMAL = "normal"
+    FORBIDDEN = "forbidden"
+
+
 # 订单状态
 class OrderStatus(Enum):
     SCHEDULING = "scheduling"  # 待排产

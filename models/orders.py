@@ -50,4 +50,4 @@ class Orders(TimeStampMixin, Base):
         Boolean(), nullable=False, default=False
     )
     client_id: Mapped[str] = mapped_column(String(14), nullable=False)
-    created_user_id: Mapped[str] = mapped_column(String(14), nullable=False)
+    created_by: Mapped[str] = mapped_column(String(14), nullable=False)

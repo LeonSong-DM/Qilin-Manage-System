@@ -19,4 +19,4 @@ class ProductionSchedule(TimeStampMixin, Base):
     quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     schedule_date: Mapped[datetime] = mapped_column(DateTime())  # 具体到日
     schedule_order: Mapped[int] = mapped_column(Integer())  # 用于实现排产拖拽
-    operate_user_id: Mapped[str] = mapped_column(String(14))
+    created_by: Mapped[str] = mapped_column(String(14))
