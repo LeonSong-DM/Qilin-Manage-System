@@ -11,8 +11,9 @@ from db.base import Base, TimeStampMixin
 class OutBoundRecords(TimeStampMixin, Base):
     __tablename__ = "out_bound_orders"
 
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     #  出库编号: QLOUTYYYYMMDDXXX
-    id: Mapped[str] = mapped_column(String(12), primary_key=True)
+    outboud_number: Mapped[str] = mapped_column(String(12))
     order_id: Mapped[str] = mapped_column(String(12), nullable=False)
     outbound_quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     outbound_unit_id: Mapped[str] = mapped_column(String(3), nullable=False)

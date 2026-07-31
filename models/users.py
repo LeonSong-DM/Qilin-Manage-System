@@ -3,7 +3,7 @@
 # @Description: System user model.
 
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import String
+from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.enum import UserRole, UserStatus
@@ -15,10 +15,8 @@ class Users(TimeStampMixin, Base):
 
     __tablename__ = "users"
 
-    id: Mapped[str] = mapped_column(
-        String(14), primary_key=True
-    )  # 用户编号：QLUYYYYMMDDXXX
-
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
+    user_number: Mapped[str] = mapped_column(String(14))  # 用户编号：QLUYYYYMMDDXXX
     name: Mapped[str] = mapped_column(String(16), nullable=False)
     phone_number: Mapped[str] = mapped_column(String(11), nullable=False, unique=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)

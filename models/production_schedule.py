@@ -13,8 +13,9 @@ from db.base import Base, TimeStampMixin
 class ProductionSchedule(TimeStampMixin, Base):
     __tablename__ = "production_schedule"
 
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     # 排产编号: QLPSYYYYMMDDXXX
-    id: Mapped[str] = mapped_column(String(12), primary_key=True)
+    production_schedule_number: Mapped[str] = mapped_column(String(12))
     order_id: Mapped[str] = mapped_column(String(12), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     schedule_date: Mapped[datetime] = mapped_column(DateTime())  # 具体到日

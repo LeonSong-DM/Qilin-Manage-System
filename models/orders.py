@@ -15,8 +15,9 @@ from db.base import Base, TimeStampMixin
 class Orders(TimeStampMixin, Base):
     __tablename__ = "orders"
 
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     # 订单编号: QLORDYYYYMMDDXXX
-    id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    order_number: Mapped[str] = mapped_column(String(16))
 
     goods_processing_method_id: Mapped[int] = mapped_column(Integer(), nullable=False)
     goods_processing_option_id: Mapped[int] = mapped_column(Integer(), nullable=True)
