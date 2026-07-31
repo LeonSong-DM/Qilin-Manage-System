@@ -19,6 +19,6 @@ from models import (  # noqa: F401
     users,
 )
 
-engine = create_engine(url=Settings.DATABASE_URL, echo=True)
+engine = create_engine(url=Settings.DATABASE_URL, echo=Settings.DATABASE_LOG_ECHO)
 
 Base.metadata.create_all(bind=engine)

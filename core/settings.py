@@ -11,3 +11,5 @@ load_dotenv()
 
 class Settings:
     DATABASE_URL = os.getenv("DATABASE_URL", "")
+
+    DATABASE_LOG_ECHO = os.getenv("DATABASE_LOG_ECHO") == "1"
