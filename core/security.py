@@ -7,12 +7,12 @@ from datetime import UTC, datetime, timedelta
 import jwt
 from pwdlib import PasswordHash
 
-from core.settings import Settings
+from core.config import settings
 
 password_hash = PasswordHash.recommended()
 
 # openssl rand -base64 32
-JWT_KEY = Settings.JWT_KEY
+JWT_KEY = settings.JWT_KEY
 
 
 def hash_password(passwd: str) -> str:
@@ -32,7 +32,7 @@ def get_access_token(user_id: str):
         "sub": user_id,
         "iat": int(now.timestamp()),
         "exp": int(
-            (now + timedelta(hours=Settings.JWT_ACCESS_TOKEN_DURATION)).timestamp()
+            (now + timedelta(hours=settings.JWT_ACCESS_TOKEN_DURATION)).timestamp()
         ),
     }
     return jwt.encode(payload, JWT_KEY, algorithm="HS256")

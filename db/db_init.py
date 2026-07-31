@@ -2,10 +2,9 @@
 # @Date:   2026-07-30 22:22
 # @Description: Init database
 
-from sqlalchemy import create_engine
 
-from core.settings import Settings
 from db.base import Base
+from db.session import engine
 from models import (  # noqa: F401
     clients,
     goods_specifications,
@@ -19,6 +18,10 @@ from models import (  # noqa: F401
     users,
 )
 
-engine = create_engine(url=Settings.DATABASE_URL, echo=Settings.DATABASE_LOG_ECHO)
 
-Base.metadata.create_all(bind=engine)
+def init_db() -> None:
+    Base.metadata.create_all(bind=engine)
+
+
+if __name__ == "__main__":
+    init_db()
