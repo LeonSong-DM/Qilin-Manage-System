@@ -17,3 +17,5 @@ class Settings:
     JWT_ACCESS_TOKEN_DURATION = int(
         os.getenv("JWT_ACCESS_TOKEN_DURATION", str(60 * 24))
     )  # minute
+
+    JWT_KEY = os.getenv("JWT_KEY", "MMoje7EdXMUI5qaRELZTwhMb4O0UWJoax6HDIUXRahY=")
