@@ -18,6 +18,6 @@ class NumberSequence(Base):
     type: Mapped[NumberType] = mapped_column(SQLEnum(NumberType))
     current_count: Mapped[int] = mapped_column(Integer())
 
-    __table_args__ = UniqueConstraint(
-        "date", "type", name="uq_number_sequence_date_type"
+    __table_args__ = (
+        UniqueConstraint("date", "type", name="uq_number_sequence_date_type"),
     )
