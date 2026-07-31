@@ -40,8 +40,9 @@ class OrderPriority(Enum):
 class NumberType(Enum):
     """维护编号序列"""
 
-    USER = "user"
-    PRODUCTION = "production"
-    ATTACHMENT = "attachment"
-    ORDER = "order"
-    OUTBOUND = "outbound"
+    USER = "QLU"
+    PRODUCTION = "QLPS"
+    ATTACHMENT = "QLA"
+    ORDER = "QLORD"
+    OUTBOUND = "QLOUT"
+    CLIENT = "QLC"
