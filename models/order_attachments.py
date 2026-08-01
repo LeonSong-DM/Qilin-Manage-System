@@ -14,4 +14,4 @@ class OrderAttachments(TimeStampMixin, Base):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     type: Mapped[str] = mapped_column(String(32))
     path: Mapped[str] = mapped_column(String(255))
-    order_id: Mapped[str] = mapped_column(String(16))
+    order_id: Mapped[int] = mapped_column(Integer())

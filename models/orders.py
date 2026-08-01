@@ -28,7 +28,7 @@ class Orders(TimeStampMixin, Base):
         DateTime(timezone=True), nullable=True
     )
     goods_quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
-    goods_unit_id: Mapped[str] = mapped_column(String(3), nullable=False)
+    goods_unit_id: Mapped[int] = mapped_column(Integer(), nullable=False)
     goods_weight: Mapped[int] = mapped_column(Integer(), nullable=False)
 
     order_priority: Mapped[OrderPriority] = mapped_column(
@@ -50,5 +50,5 @@ class Orders(TimeStampMixin, Base):
     confirm_harvest: Mapped[bool] = mapped_column(
         Boolean(), nullable=False, default=False
     )
-    client_id: Mapped[str] = mapped_column(String(14), nullable=False)
-    created_by: Mapped[str] = mapped_column(String(14), nullable=False)
+    client_id: Mapped[int] = mapped_column(Integer(), nullable=False)
+    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)

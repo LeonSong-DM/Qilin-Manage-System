@@ -24,4 +24,4 @@ class Users(TimeStampMixin, Base):
     status: Mapped[UserStatus] = mapped_column(
         SQLEnum(UserStatus), nullable=False, default=UserStatus.NORMAL
     )
-    created_by: Mapped[str] = mapped_column(String(14), nullable=False)
+    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)

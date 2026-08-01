@@ -12,5 +12,5 @@ class Units(TimeStampMixin, Base):
     __tablename__ = "unit"
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(8))
-    created_by: Mapped[str] = mapped_column(String(14), nullable=False)
+    name: Mapped[str] = mapped_column(String(8), unique=True)
+    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)

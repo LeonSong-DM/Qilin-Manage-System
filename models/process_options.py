@@ -12,6 +12,6 @@ class ProcessOption(TimeStampMixin, Base):
     __tablename__ = "process_options"
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
-    option_name: Mapped[str] = mapped_column(String(16))
+    option_name: Mapped[str] = mapped_column(String(16), unique=True)
     process_method_id: Mapped[int] = mapped_column(Integer(), nullable=False)
-    created_by: Mapped[str] = mapped_column(String(14), nullable=False)
+    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)
