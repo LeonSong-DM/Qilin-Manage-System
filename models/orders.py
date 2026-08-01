@@ -15,8 +15,9 @@ from db.base import Base, TimeStampMixin
 class Orders(TimeStampMixin, Base):
     __tablename__ = "orders"
 
+    id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     # 订单编号: QLORDYYYYMMDDXXX
-    id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    order_number: Mapped[str] = mapped_column(String(16))
 
     goods_processing_method_id: Mapped[int] = mapped_column(Integer(), nullable=False)
     goods_processing_option_id: Mapped[int] = mapped_column(Integer(), nullable=True)
@@ -27,7 +28,7 @@ class Orders(TimeStampMixin, Base):
         DateTime(timezone=True), nullable=True
     )
     goods_quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
-    goods_unit_id: Mapped[str] = mapped_column(String(3), nullable=False)
+    goods_unit_id: Mapped[int] = mapped_column(Integer(), nullable=False)
     goods_weight: Mapped[int] = mapped_column(Integer(), nullable=False)
 
     order_priority: Mapped[OrderPriority] = mapped_column(
@@ -49,5 +50,5 @@ class Orders(TimeStampMixin, Base):
     confirm_harvest: Mapped[bool] = mapped_column(
         Boolean(), nullable=False, default=False
     )
-    client_id: Mapped[str] = mapped_column(String(14), nullable=False)
-    created_by: Mapped[str] = mapped_column(String(14), nullable=False)
+    client_id: Mapped[int] = mapped_column(Integer(), nullable=False)
+    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)

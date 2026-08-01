@@ -12,5 +12,5 @@ class ProcessMethods(TimeStampMixin, Base):
     __tablename__ = "process_methods"
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True)
-    process_method: Mapped[str] = mapped_column(String(16), nullable=False)
-    created_by: Mapped[str] = mapped_column(String(14))
+    method_name: Mapped[str] = mapped_column(String(16), nullable=False, unique=True)
+    created_by: Mapped[int] = mapped_column(Integer())
