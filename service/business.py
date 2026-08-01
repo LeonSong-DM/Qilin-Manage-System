@@ -8,79 +8,15 @@ from sqlalchemy.orm import Session
 
 from schemas.order import OrderCreate
 
-from core.exception import (
-    OrderExistedException,
-    OutboundRecordExistedException,
-    UnitExistedException,
-    ProcessMethodExistedException,
-    ProcessOptionExistedException,
-    ClientExistedException,
-)
+from core.enum import NumberType
 from models.orders import Orders
-from models.outbound_records import OutBoundRecords
-from models.units import Units
-from models.process_methods import ProcessMethods
-from models.process_options import ProcessOption
-from models.clients import Clients
+from service.number_generate import get_number_by_type
 
 
-def _is_order_exist(session: Session, order_number: str):
-    stmt = select(Orders).where(Orders.order_number == order_number)
-    result = session.execute(stmt).scalar_one_or_none()
-
-    if result is not None:
-        raise OrderExistedException(order_number)
-
-
-def _is_outbound_record_exist(session: Session, outbound_number: str):
-    stmt = select(OutBoundRecords).where(
-        OutBoundRecords.outboud_number == outbound_number
-    )
-
-    res = session.execute(stmt).scalar_one_or_none()
-
-    if res is not None:
-        raise OutboundRecordExistedException(outbound_number)
-
-
-def _is_unit_exist(session: Session, unit_name: str):
-    stmt = select(Units).where(Units.name == unit_name)
-    res = session.execute(stmt).scalar_one_or_none()
-
-    if res is not None:
-        raise UnitExistedException(unit_name)
-
-
-def _is_process_method_exist(session: Session, method_name: str):
-    stmt = select(ProcessMethods).where(ProcessMethods.method_name == method_name)
-    res = session.execute(stmt).scalar_one_or_none()
-
-    if res is not None:
-        raise ProcessMethodExistedException(method_name)
-
-
-def _is_process_option_exist(session: Session, option_name: str):
-    stmt = select(ProcessOption).where(ProcessOption.option_name == option_name)
-    res = session.execute(stmt).scalar_one_or_none()
-
-    if res is not None:
-        raise ProcessOptionExistedException(option_name)
-
-
-def _is_client_exist(session: Session, client_number):
-    stmt = select(Clients).where(Clients.client_number == client_number)
-    res = session.execute(stmt).scalar_one_or_none()
-
-    if res is not None:
-        raise ClientExistedException(client_number=client_number)
-
-
-def create_order(session: Session, order_create: OrderCreate):
+def create_order(session: Session, order_create: OrderCreate, current_user_id: int):
     """create new order"""
-    _is_order_exist(session, order_create.order_number)
-
     order = Orders(
-        order_number=order_create.order_number,
+        order_number=get_number_by_type(NumberType.ORDER),
         goods_processing_method_id=order_create.goods_processing_method_id,
         goods_processing_option_id=order_create.goods_processing_option_id,
         is_closed=order_create.is_closed,
@@ -94,11 +30,16 @@ def create_order(session: Session, order_create: OrderCreate):
         order_remarks=order_create.order_remarks,
         outbound_status=order_create.outbound_status,
         goods_remaining_quantity=order_create.goods_remaining_quantity,
-        confirm_harvest=order_create.confirm_harvest,
+        confirm_harvest=False,
         client_id=order_create.client_id,
-        created_by=order_create.created_by,
+        created_by=current_user_id,
     )
-    session.add(order)
+
+    try:
+        session.add(order)
+        session.commit()
+    except Exception as e:
+        raise
 
 
 # TODO create, modify ouboud record
@@ -113,7 +54,4 @@ def create_order(session: Session, order_create: OrderCreate):
 
 
 if __name__ == "__main__":
-    from db.session import SessionLocal
-
-    with SessionLocal() as session:
-        _is_order_exist(session, order_number="sdkljfkls")
+    pass
