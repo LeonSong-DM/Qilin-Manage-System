@@ -3,18 +3,21 @@
 # @Date:   2026-07-31 20:41
 # @Description: Operations of order
 
+from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from schemas.order import OrderCreate
+from schemas.business import OutboundRecordCreate, UnitCreate
 
-from core.enum import NumberType
 from models.orders import Orders
+from models.outbound_records import OutBoundRecords
+from models.units import Units
 from service.number_generate import get_number_by_type
 
-from datetime import datetime
 from db.session import SessionLocal
-from core.enum import OrderPriority, OrderStatus, OutboundStatus
+from core.enum import OrderPriority, OrderStatus, OutboundStatus, NumberType
 
 
 def create_order(session: Session, order_create: OrderCreate, current_user_id: int):
@@ -49,8 +52,36 @@ def create_order(session: Session, order_create: OrderCreate, current_user_id: i
 
 
 # TODO create, modify ouboud record
+def create_outbound_record(
+    session: Session, outbound_record_create: OutboundRecordCreate, current_user_id: int
+):
+    outbound_record = OutBoundRecords(
+        outbound_number=get_number_by_type(NumberType.OUTBOUND),
+        order_id=outbound_record_create.order_id,
+        outbound_quantity=outbound_record_create.outbound_quantity,
+        outbound_weight=outbound_record_create.outboud_weight,
+        created_by=current_user_id,
+    )
+
+    try:
+        session.add(outbound_record)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
 
 #  TODO create, modify, delete unit
+def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int):
+    unit = Units(name=unit_create.name, created_by=current_user_id)
+
+    try:
+        session.add(unit)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
 
 # TODO create, modify delete process method
 
@@ -60,23 +91,4 @@ def create_order(session: Session, order_create: OrderCreate, current_user_id: i
 
 
 if __name__ == "__main__":
-    # 添加订单测试
-
-    with SessionLocal() as session:
-        new_order = create_order(
-            session,
-            OrderCreate(
-                goods_processing_method_id=1,
-                goods_processing_option_id=1,
-                goods_delivery_time=datetime.now(),
-                is_closed=False,
-                goods_specification_id=1,
-                goods_quantity=100,
-                goods_unit_id=1,
-                goods_weight=1000,
-                order_priority=OrderPriority.P0,
-                order_remarks="",
-                client_id=1,
-            ),
-            current_user_id=1,
-        )
+    pass
