@@ -10,17 +10,14 @@ from core.enum import OrderPriority, OrderStatus, OutboundStatus
 
 
 class OrderCreate(BaseModel):
-    goods_processing_method_id: str = Field(...)
-    goods_processing_option_id: str = Field(...)
+    goods_processing_method_id: int
+    goods_processing_option_id: int
     is_closed: bool
-    goods_specification_id: str = Field(...)
+    goods_specification_id: int
     goods_delivery_time: datetime
     goods_quantity: int = Field(gt=0)
-    goods_unit_id: str
+    goods_unit_id: int
     goods_weight: int = Field(gt=0)
     order_priority: OrderPriority
-    order_status: OrderStatus
     order_remarks: str
-    outbound_status: OutboundStatus
-    goods_remaining_quantity: int = Field(ge=0)
-    client_id: int = Field(min_length=14, max_length=14)
+    client_id: int
