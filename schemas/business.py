@@ -11,7 +11,7 @@ class UnitCreate(BaseModel):
 
 
 class OutboundRecordCreate(BaseModel):
-    outboud_number: str = Field(min_length=12, max_length=12)
+    order_id: int
     outbound_quantity: int = Field(gt=0)
     outboud_weight: int = Field(gt=0)
 
