@@ -25,7 +25,7 @@ class ProcessOptionCreate(BaseModel):
     process_method_id: int = Field()
 
 
-class ClientCreateCreate(BaseModel):
+class ClientCreate(BaseModel):
     client_number: str = Field(min_length=14, max_length=14)
     client_name: str = Field(min_length=1, max_length=64)
     contact_phone_number: str = Field(

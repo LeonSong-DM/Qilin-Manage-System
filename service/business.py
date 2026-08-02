@@ -5,19 +5,27 @@
 
 from datetime import datetime
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from schemas.order import OrderCreate
-from schemas.business import OutboundRecordCreate, UnitCreate
+from schemas.business import (
+    OutboundRecordCreate,
+    UnitCreate,
+    ProcessMethodCreate,
+    ProcessOptionCreate,
+    ClientCreate,
+)
 
 from models.orders import Orders
 from models.outbound_records import OutBoundRecords
 from models.units import Units
+from models.process_methods import ProcessMethods
+from models.clients import Clients
+from models.process_options import ProcessOption
 from service.number_generate import get_number_by_type
 
 from db.session import SessionLocal
-from core.enum import OrderPriority, OrderStatus, OutboundStatus, NumberType
+from core.enum import OrderStatus, OutboundStatus, NumberType
 
 
 def create_order(session: Session, order_create: OrderCreate, current_user_id: int):
@@ -84,11 +92,62 @@ def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int)
 
 
 # TODO create, modify delete process method
+def create_process_method(
+    session: Session, process_method_create: ProcessMethodCreate, current_user_id: int
+):
+    process_method = ProcessMethods(
+        method_name=process_method_create.method_name, created_by=current_user_id
+    )
+    try:
+        session.add(process_method)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
 
 # TODO create, modify delete process option
+def create_process_option(
+    session: Session, process_option_created: ProcessOptionCreate, current_user_id: int
+):
+    process_option = ProcessOption(
+        option_name=process_option_created.option_name,
+        process_method_id=process_option_created.process_method_id,
+        created_by=current_user_id,
+    )
+
+    try:
+        session.add(process_option)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
 
 # TODO create, modify, delete order client
+def create_client(session: Session, client_create: ClientCreate, current_user_id: int):
+    client = Clients(
+        client_number=client_create.client_number,
+        client_name=client_create.client_name,
+        contact_phone_number=client_create.contact_phone_number,
+        address=client_create.address,
+        created_by=current_user_id,
+    )
+    try:
+        session.add(client)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
 
 
 if __name__ == "__main__":
-    pass
+
+    process_method = ProcessMethodCreate(method_name="镀锌")
+    process_option = ProcessOptionCreate(option_name="三价彩", process_method_id=1)
+    client = ClientCreate(
+        client_number=get_number_by_type(NumberType.CLIENT),
+        client_name="Hello",
+        contact_phone_number="17321100008",
+        address="北京市中南海",
+    )
