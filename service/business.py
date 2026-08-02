@@ -87,6 +87,23 @@ def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int)
         raise
 
 
+def delete_unit(session: Session, unit_id: int):
+
+    stmt = select(Units).where(Units.id == unit_id)
+    res = session.execute(stmt).scalar_one_or_none()
+
+    if res is None:
+        raise BusinessException("Unit has exist")
+
+    stmt = delete(Units).where(Units.id == unit_id)
+    try:
+        session.execute(stmt)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+
 # TODO create, modify delete process method
 def create_process_method(
     session: Session, process_method_create: ProcessMethodCreate, current_user_id: int
@@ -155,6 +172,8 @@ def create_client(session: Session, client_create: ClientCreate, current_user_id
 
 
 if __name__ == "__main__":
+    from db.session import SessionLocal
+
     process_method = ProcessMethodCreate(method_name="镀锌")
     process_option = ProcessOptionCreate(option_name="三价彩", process_method_id=1)
     client = ClientCreate(
@@ -163,7 +182,7 @@ if __name__ == "__main__":
         contact_phone_number="17321100008",
         address="北京市中南海",
     )
-    from db.session import SessionLocal
 
     with SessionLocal() as session:
-        delete_process_method(session, process_method_id=1)
+        # delete_process_method(session, process_method_id=1)
+        delete_unit(session, 1)
