@@ -93,7 +93,7 @@ def delete_unit(session: Session, unit_id: int):
     res = session.execute(stmt).scalar_one_or_none()
 
     if res is None:
-        raise BusinessException("Unit has exist")
+        raise BusinessException("The unit did not exists")
 
     stmt = delete(Units).where(Units.id == unit_id)
     try:
@@ -120,12 +120,11 @@ def create_process_method(
 
 
 def delete_process_method(session: Session, process_method_id: int):
-
     stmt = select(ProcessMethods).where(ProcessMethods.id == process_method_id)
     res = session.execute(stmt).scalar_one_or_none()
 
     if res is None:
-        raise BusinessException("Process method has exist")
+        raise BusinessException("The process method did not exists")
 
     stmt = delete(ProcessMethods).where(ProcessMethods.id == process_method_id)
     try:
@@ -148,6 +147,22 @@ def create_process_option(
 
     try:
         session.add(process_option)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+
+def delete_process_option(session: Session, process_option_id: int):
+    stmt = select(ProcessOption).where(ProcessOption.id == process_option_id)
+    res = session.execute(stmt).scalar_one_or_none()
+
+    if res is None:
+        raise BusinessException("The process option did not exists")
+
+    stmt = delete(ProcessOption).where(ProcessOption.id == process_option_id)
+    try:
+        session.execute(stmt)
         session.commit()
     except Exception:
         session.rollback()
@@ -185,4 +200,4 @@ if __name__ == "__main__":
 
     with SessionLocal() as session:
         # delete_process_method(session, process_method_id=1)
-        delete_unit(session, 1)
+        delete_process_option(session, process_option_id=1)
