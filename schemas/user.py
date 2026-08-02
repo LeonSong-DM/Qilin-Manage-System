@@ -3,7 +3,7 @@
 # @Description: User operation schemas
 
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 
 from core.enum import UserRole, UserStatus
 
@@ -12,10 +12,10 @@ class UserCreate(BaseModel):
     """user create schema"""
 
     user_number: str = Field(min_length=14, max_length=14)
+    name: str = Field(min_length=1, max_length=16)
     phone_number: str = Field(
         ..., min_length=11, max_length=11, pattern=r"^1[3-9]\d{9}$"
     )
-    hashed_password: str = Field(...)
+    hashed_password: SecretStr
     role: UserRole
     status: UserStatus = Field(default=UserStatus.NORMAL)
-    created_by: str = Field(..., min_length=14, max_length=14)
