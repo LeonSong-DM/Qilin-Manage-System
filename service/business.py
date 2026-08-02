@@ -2,10 +2,11 @@
 # @Date:   2026-07-31 20:41
 # @Description: Operations of order
 
-
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from core.enum import NumberType, OrderStatus, OutboundStatus
+from core.exception import BusinessException
 from models.clients import Clients
 from models.orders import Orders
 from models.outbound_records import OutBoundRecords
@@ -101,6 +102,23 @@ def create_process_method(
         raise
 
 
+def delete_process_method(session: Session, process_method_id: int):
+
+    stmt = select(ProcessMethods).where(ProcessMethods.id == process_method_id)
+    res = session.execute(stmt).scalar_one_or_none()
+
+    if res is None:
+        raise BusinessException("Process method has exist")
+
+    stmt = delete(ProcessMethods).where(ProcessMethods.id == process_method_id)
+    try:
+        session.execute(stmt)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+
 # TODO create, modify delete process option
 def create_process_option(
     session: Session, process_option_created: ProcessOptionCreate, current_user_id: int
@@ -145,3 +163,7 @@ if __name__ == "__main__":
         contact_phone_number="17321100008",
         address="北京市中南海",
     )
+    from db.session import SessionLocal
+
+    with SessionLocal() as session:
+        delete_process_method(session, process_method_id=1)
