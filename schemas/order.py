@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from core.enum import OrderPriority, OrderStatus, OutboundStatus
+from core.enum import OrderPriority
 
 
 class OrderCreate(BaseModel):

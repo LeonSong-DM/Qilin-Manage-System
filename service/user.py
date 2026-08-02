@@ -5,8 +5,8 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from schemas.user import UserCreate
 from models.users import Users
+from schemas.user import UserCreate
 
 
 def is_user_existed(session: Session, phone_number: str):

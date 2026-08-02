@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # @Author: LeonSong
 # @Date:   2026-08-01 11:44
 # @Description:  Schemas of business

@@ -8,13 +8,13 @@ from db.session import engine
 from models import (  # noqa: F401
     clients,
     goods_specifications,
+    number_sequence,
     order_attachments,
     orders,
     outbound_records,
     process_methods,
     process_options,
     production_schedule,
-    number_sequence,
     units,
     users,
 )

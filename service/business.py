@@ -1,31 +1,26 @@
-# -*- coding: utf-8 -*-
 # @Author: LeonSong
 # @Date:   2026-07-31 20:41
 # @Description: Operations of order
 
-from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from schemas.order import OrderCreate
-from schemas.business import (
-    OutboundRecordCreate,
-    UnitCreate,
-    ProcessMethodCreate,
-    ProcessOptionCreate,
-    ClientCreate,
-)
-
+from core.enum import NumberType, OrderStatus, OutboundStatus
+from models.clients import Clients
 from models.orders import Orders
 from models.outbound_records import OutBoundRecords
-from models.units import Units
 from models.process_methods import ProcessMethods
-from models.clients import Clients
 from models.process_options import ProcessOption
+from models.units import Units
+from schemas.business import (
+    ClientCreate,
+    OutboundRecordCreate,
+    ProcessMethodCreate,
+    ProcessOptionCreate,
+    UnitCreate,
+)
+from schemas.order import OrderCreate
 from service.number_generate import get_number_by_type
-
-from db.session import SessionLocal
-from core.enum import OrderStatus, OutboundStatus, NumberType
 
 
 def create_order(session: Session, order_create: OrderCreate, current_user_id: int):
@@ -142,7 +137,6 @@ def create_client(session: Session, client_create: ClientCreate, current_user_id
 
 
 if __name__ == "__main__":
-
     process_method = ProcessMethodCreate(method_name="镀锌")
     process_option = ProcessOptionCreate(option_name="三价彩", process_method_id=1)
     client = ClientCreate(
