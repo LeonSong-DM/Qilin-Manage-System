@@ -2,7 +2,7 @@
 # @Date:   2026-07-30 17:45
 # @Description: Model of units
 
-from sqlalchemy import String, Integer
+from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base, TimeStampMixin

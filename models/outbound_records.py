@@ -2,7 +2,7 @@
 # @Date:   2026-07-29 21:14
 # @Description: Outbound records model
 
-from sqlalchemy import Float, Integer, String
+from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base, TimeStampMixin
