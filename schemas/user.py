@@ -11,7 +11,6 @@ from core.enum import UserRole, UserStatus
 class UserCreate(BaseModel):
     """user create schema"""
 
-    user_number: str = Field(min_length=14, max_length=14)
     name: str = Field(min_length=1, max_length=16)
     phone_number: str = Field(
         ..., min_length=11, max_length=11, pattern=r"^1[3-9]\d{9}$"

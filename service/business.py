@@ -18,6 +18,7 @@ from schemas.business import (
     ProcessMethodCreate,
     ProcessOptionCreate,
     UnitCreate,
+    UnitModify,
 )
 from service.number_generate import get_number_by_type
 
@@ -52,6 +53,19 @@ def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int)
     except Exception:
         session.rollback()
         raise
+
+
+def modify_unit_name(session: Session, unit_id: int, unit_modify: UnitModify):
+    """modify the unit name"""
+    unit = session.get(Units, unit_id)
+
+    if unit is None:
+        raise BusinessException(f"Unit {unit_id} did not exist")
+
+    unit.name = unit_modify.name
+    session.commit()
+    session.refresh(unit)
+    return unit
 
 
 def delete_unit(session: Session, unit_id: int):

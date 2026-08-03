@@ -51,7 +51,6 @@ if __name__ == "__main__":
     from db.session import SessionLocal
 
     user_create = UserCreate(
-        user_number=get_number_by_type(NumberType.USER),
         name="宋宇阳",
         phone_number="17321100008",
         hashed_password=SecretStr("1213123131"),
