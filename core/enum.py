@@ -46,3 +46,8 @@ class NumberType(Enum):
     ORDER = "QLORD"
     OUTBOUND = "QLOUT"
     CLIENT = "QLC"
+
+
+class SCHEDULE_STATUS(Enum):
+    COMPLETED = "completed"
+    IN_PRODUCTION = "in_production"
