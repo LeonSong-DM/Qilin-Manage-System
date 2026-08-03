@@ -26,7 +26,6 @@ from schemas.business import (
 from service.number_generate import get_number_by_type
 
 
-# TODO create, modify ouboud record
 def get_order_by_order_id(session: Session, order_id: int):
     order = session.get(Orders, order_id)
     if order is None:
@@ -146,8 +145,8 @@ def update_outbound_record(
         raise
 
 
-#  TODO create, modify, delete unit
 def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int):
+    """创建单位"""
     unit = Units(
         name=unit_create.name, updated_by=current_user_id, created_by=current_user_id
     )
@@ -176,7 +175,7 @@ def modify_unit_name(
 
 
 def delete_unit(session: Session, unit_id: int):
-
+    """删除单位"""
     stmt = select(Units).where(Units.id == unit_id)
     unit = session.execute(stmt).scalar_one_or_none()
 
@@ -191,10 +190,10 @@ def delete_unit(session: Session, unit_id: int):
         raise
 
 
-# TODO create, modify delete process method
 def create_process_method(
     session: Session, process_method_create: ProcessMethodCreate, current_user_id: int
 ):
+    """创建处理方式"""
     process_method = ProcessMethods(
         method_name=process_method_create.method_name,
         updated_by=current_user_id,
@@ -209,6 +208,7 @@ def create_process_method(
 
 
 def delete_process_method(session: Session, process_method_id: int):
+    """ "删除处理方式"""
     stmt = select(ProcessMethods).where(ProcessMethods.id == process_method_id)
     process_method = session.execute(stmt).scalar_one_or_none()
 
@@ -223,10 +223,10 @@ def delete_process_method(session: Session, process_method_id: int):
         raise
 
 
-# TODO create, modify delete process option
 def create_process_option(
     session: Session, process_option_created: ProcessOptionCreate, current_user_id: int
 ):
+    """创建处理选项"""
     process_option = ProcessOption(
         option_name=process_option_created.option_name,
         process_method_id=process_option_created.process_method_id,
@@ -243,6 +243,7 @@ def create_process_option(
 
 
 def delete_process_option(session: Session, process_option_id: int):
+    """删除处理选项"""
     stmt = select(ProcessOption).where(ProcessOption.id == process_option_id)
     process_option = session.execute(stmt).scalar_one_or_none()
 
@@ -257,8 +258,8 @@ def delete_process_option(session: Session, process_option_id: int):
         raise
 
 
-# TODO create, modify, delete order client
 def create_client(session: Session, client_create: ClientCreate, current_user_id: int):
+    """创建客户"""
     client = Clients(
         client_number=client_create.client_number,
         client_name=client_create.client_name,
@@ -278,6 +279,7 @@ def create_client(session: Session, client_create: ClientCreate, current_user_id
 def update_client(
     session: Session, client_id: int, client_update: ClientUpdate, current_user_id
 ):
+    """更新客户信息"""
     client = session.get(Clients, client_id)
 
     if client is None:
