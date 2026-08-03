@@ -5,9 +5,12 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from core.enum import NumberType
+from core.enum import NumberType, OutboundStatus
 from core.exception import BusinessException
 from models.clients import Clients
+
+# TODO create, modify ouboud record
+from models.orders import Orders
 from models.outbound_records import OutBoundRecords
 from models.process_methods import ProcessMethods
 from models.process_options import ProcessOption
@@ -24,10 +27,24 @@ from schemas.business import (
 from service.number_generate import get_number_by_type
 
 
-# TODO create, modify ouboud record
+def get_order_by_order_id(session: Session, order_id: int):
+    order = session.get(Orders, order_id)
+    if order is None:
+        raise BusinessException("Order did not exists")
+
+    return order
+
+
 def create_outbound_record(
     session: Session, outbound_record_create: OutboundRecordCreate, current_user_id: int
 ):
+    order = get_order_by_order_id(session, outbound_record_create.order_id)
+
+    if outbound_record_create.outbound_quantity > order.goods_remaining_quantity:
+        raise BusinessException(
+            "The quantity of goods to be shipped has exceeded the current inventory"
+        )
+
     outbound_record = OutBoundRecords(
         outbound_number=get_number_by_type(NumberType.OUTBOUND),
         order_id=outbound_record_create.order_id,
@@ -37,9 +54,20 @@ def create_outbound_record(
         created_by=current_user_id,
     )
 
+    # update remaining quantity & OutBoundStatus & updated user
+    order.goods_remaining_quantity -= outbound_record_create.outbound_quantity
+    order.outbound_status = (
+        OutboundStatus.FULLY_OUTBOUND
+        if order.goods_remaining_quantity == 0
+        else OutboundStatus.PARTIALLY_OUTBOUND
+    )
+    order.updated_by = current_user_id
+
     try:
         session.add(outbound_record)
         session.commit()
+        session.refresh(outbound_record)
+        return outbound_record
     except Exception:
         session.rollback()
         raise
