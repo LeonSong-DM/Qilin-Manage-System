@@ -30,7 +30,7 @@ def create_outbound_record(
         outbound_number=get_number_by_type(NumberType.OUTBOUND),
         order_id=outbound_record_create.order_id,
         outbound_quantity=outbound_record_create.outbound_quantity,
-        outbound_weight=outbound_record_create.outboud_weight,
+        outbound_weight=outbound_record_create.outbound_weight,
         created_by=current_user_id,
     )
 

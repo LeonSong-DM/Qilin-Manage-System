@@ -13,7 +13,7 @@ class OutBoundRecords(TimeStampMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     #  出库编号: QLOUTYYYYMMDDXXX
-    outboud_number: Mapped[str] = mapped_column(String(12))
+    outbound_number: Mapped[str] = mapped_column(String(12))
     order_id: Mapped[int] = mapped_column(Integer(), nullable=False)
     outbound_quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     outbound_weight: Mapped[int] = mapped_column(Integer(), nullable=False)

@@ -12,7 +12,7 @@ class UnitCreate(BaseModel):
 class OutboundRecordCreate(BaseModel):
     order_id: int
     outbound_quantity: int = Field(gt=0)
-    outboud_weight: int = Field(gt=0)
+    outbound_weight: int = Field(gt=0)
 
 
 class ProcessMethodCreate(BaseModel):
