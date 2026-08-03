@@ -3,14 +3,14 @@
 # @Description: System user model.
 
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import Integer, String
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.enum import UserRole, UserStatus
-from db.base import AuditMixin, Base, TimeStampMixin
+from db.base import Base, TimeStampMixin
 
 
-class Users(TimeStampMixin, AuditMixin, Base):
+class Users(TimeStampMixin, Base):
     """用户信息"""
 
     __tablename__ = "users"
@@ -23,4 +23,10 @@ class Users(TimeStampMixin, AuditMixin, Base):
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), nullable=False)
     status: Mapped[UserStatus] = mapped_column(
         SQLEnum(UserStatus), nullable=False, default=UserStatus.NORMAL
+    )
+    created_by: Mapped[int | None] = mapped_column(
+        Integer(), ForeignKey("users.id"), nullable=True
+    )
+    updated_by: Mapped[int | None] = mapped_column(
+        Integer(), ForeignKey("users.id"), nullable=True
     )

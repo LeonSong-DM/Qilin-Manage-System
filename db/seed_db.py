@@ -45,10 +45,13 @@ def get_or_create_user(session: Session) -> Users:
         hashed_password=hash_password("admin123456"),
         role=UserRole.ADMIN,
         status=UserStatus.NORMAL,
-        created_by=SEED_USER_ID,
-        updated_by=SEED_USER_ID,
+        created_by=None,
+        updated_by=None,
     )
     session.add(user)
+    session.flush()
+    user.created_by = user.id
+    user.updated_by = user.id
     session.flush()
     return user
 
@@ -168,7 +171,7 @@ def create_order_if_missing(
         return order
 
     delivery_time = (
-        datetime.now() + timedelta(days=delivery_days)
+        datetime.now() + timedelta(days=delivery_days)  # noqa: DTZ005
         if delivery_days is not None
         else None
     )
@@ -311,9 +314,7 @@ def seed_db() -> None:
             ) in enumerate(order_specs, start=1):
                 method = process_methods[["镀锌", "镀镍", "镀铬"][index % 3]]
                 option = (
-                    process_options["蓝白锌"]
-                    if method.method_name == "镀锌"
-                    else None
+                    process_options["蓝白锌"] if method.method_name == "镀锌" else None
                 )
                 is_closed = method.method_name == "镀锌" and index % 2 == 0
                 order = create_order_if_missing(
