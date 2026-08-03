@@ -4,7 +4,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, func
+from sqlalchemy import DateTime, ForeignKey, Integer, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -25,5 +25,9 @@ class TimeStampMixin:
 
 
 class AuditMixin:
-    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)
-    updated_by: Mapped[int] = mapped_column(Integer(), nullable=True)
+    created_by: Mapped[int] = mapped_column(
+        Integer(), ForeignKey("users.id"), nullable=False
+    )
+    updated_by: Mapped[int | None] = mapped_column(
+        Integer(), ForeignKey("users.id"), nullable=True
+    )

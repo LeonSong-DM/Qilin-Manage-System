@@ -2,7 +2,7 @@
 # @Date:   2026-07-29 21:14
 # @Description: Outbound records model
 
-from sqlalchemy import Integer, String
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import AuditMixin, Base, TimeStampMixin
@@ -14,6 +14,8 @@ class OutBoundRecords(TimeStampMixin, AuditMixin, Base):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     #  出库编号: QLOUTYYYYMMDDXXX
     outbound_number: Mapped[str] = mapped_column(String(16))
-    order_id: Mapped[int] = mapped_column(Integer(), nullable=False)
+    order_id: Mapped[int] = mapped_column(
+        Integer(), ForeignKey("orders.id"), nullable=False
+    )
     outbound_quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     outbound_weight: Mapped[int] = mapped_column(Integer(), nullable=False)

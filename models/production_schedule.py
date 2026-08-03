@@ -4,7 +4,7 @@
 
 from datetime import date
 
-from sqlalchemy import Date, Integer, String
+from sqlalchemy import Date, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,7 +18,9 @@ class ProductionSchedule(TimeStampMixin, AuditMixin, Base):
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     # 排产编号: QLPSYYYYMMDDXXX
     production_schedule_number: Mapped[str] = mapped_column(String(15), unique=True)
-    order_id: Mapped[int] = mapped_column(Integer(), nullable=False)
+    order_id: Mapped[int] = mapped_column(
+        Integer(), ForeignKey("orders.id"), nullable=False
+    )
     quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     schedule_date: Mapped[date] = mapped_column(Date())  # 具体到日
     schedule_order: Mapped[int] = mapped_column(Integer())  # 用于实现排产拖拽

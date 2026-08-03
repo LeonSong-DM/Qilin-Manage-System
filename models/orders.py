@@ -4,7 +4,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -19,16 +19,24 @@ class Orders(TimeStampMixin, AuditMixin, Base):
     # 订单编号: QLORDYYYYMMDDXXX
     order_number: Mapped[str] = mapped_column(String(16))
 
-    goods_processing_method_id: Mapped[int] = mapped_column(Integer(), nullable=False)
-    goods_processing_option_id: Mapped[int] = mapped_column(Integer(), nullable=True)
+    goods_processing_method_id: Mapped[int] = mapped_column(
+        Integer(), ForeignKey("process_methods.id"), nullable=False
+    )
+    goods_processing_option_id: Mapped[int | None] = mapped_column(
+        Integer(), ForeignKey("process_options.id"), nullable=True
+    )
     is_closed: Mapped[bool] = mapped_column(Boolean(), default=False)  # 仅针对镀锌
 
-    goods_specification_id: Mapped[str] = mapped_column(String(3), nullable=False)
+    goods_specification_id: Mapped[int] = mapped_column(
+        Integer(), ForeignKey("goods_specification.id"), nullable=False
+    )
     goods_delivery_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     goods_quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
-    goods_unit_id: Mapped[int] = mapped_column(Integer(), nullable=False)
+    goods_unit_id: Mapped[int] = mapped_column(
+        Integer(), ForeignKey("unit.id"), nullable=False
+    )
     goods_weight: Mapped[int] = mapped_column(Integer(), nullable=False)
 
     order_priority: Mapped[OrderPriority] = mapped_column(
@@ -50,4 +58,6 @@ class Orders(TimeStampMixin, AuditMixin, Base):
     confirm_harvest: Mapped[bool] = mapped_column(
         Boolean(), nullable=False, default=False
     )
-    client_id: Mapped[int] = mapped_column(Integer(), nullable=False)
+    client_id: Mapped[int] = mapped_column(
+        Integer(), ForeignKey("clients.id"), nullable=False
+    )
