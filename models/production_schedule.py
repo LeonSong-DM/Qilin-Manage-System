@@ -15,7 +15,7 @@ class ProductionSchedule(TimeStampMixin, AuditMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     # 排产编号: QLPSYYYYMMDDXXX
-    production_schedule_number: Mapped[str] = mapped_column(String(12), unique=True)
+    production_schedule_number: Mapped[str] = mapped_column(String(15), unique=True)
     order_id: Mapped[int] = mapped_column(Integer(), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     schedule_date: Mapped[datetime] = mapped_column(DateTime())  # 具体到日
