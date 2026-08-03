@@ -32,7 +32,7 @@ def get_access_token(user_id: str):
         "sub": user_id,
         "iat": int(now.timestamp()),
         "exp": int(
-            (now + timedelta(hours=settings.JWT_ACCESS_TOKEN_DURATION)).timestamp()
+            (now + timedelta(minutes=settings.JWT_ACCESS_TOKEN_DURATION)).timestamp()
         ),
     }
     return jwt.encode(payload, JWT_KEY, algorithm="HS256")
