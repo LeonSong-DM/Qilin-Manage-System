@@ -18,7 +18,7 @@ from schemas.business import (
     ProcessMethodCreate,
     ProcessOptionCreate,
     UnitCreate,
-    UnitModify,
+    UnitUpdate,
 )
 from service.number_generate import get_number_by_type
 
@@ -55,7 +55,7 @@ def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int)
         raise
 
 
-def modify_unit_name(session: Session, unit_id: int, unit_modify: UnitModify):
+def modify_unit_name(session: Session, unit_id: int, unit_modify: UnitUpdate):
     """modify the unit name"""
     unit = session.get(Units, unit_id)
 

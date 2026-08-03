@@ -9,7 +9,7 @@ class UnitCreate(BaseModel):
     name: str = Field(min_length=1, max_length=8)
 
 
-class UnitModify(BaseModel):
+class UnitUpdate(BaseModel):
     name: str = Field(min_length=1, max_length=8)
 
 
