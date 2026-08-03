@@ -18,3 +18,8 @@ class UserCreate(BaseModel):
     hashed_password: SecretStr
     role: UserRole
     status: UserStatus = Field(default=UserStatus.NORMAL)
+
+
+class UserLogin(BaseModel):
+    phone_number: str = Field(min_length=11, max_length=11)
+    password: SecretStr
