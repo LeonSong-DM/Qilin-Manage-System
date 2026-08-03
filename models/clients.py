@@ -5,10 +5,10 @@
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db.base import Base, TimeStampMixin
+from db.base import AuditMixin, Base, TimeStampMixin
 
 
-class Clients(TimeStampMixin, Base):
+class Clients(TimeStampMixin, AuditMixin, Base):
     __tablename__ = "clients"
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
@@ -19,4 +19,3 @@ class Clients(TimeStampMixin, Base):
         String(11), nullable=True, unique=True
     )
     address: Mapped[str] = mapped_column(String(255), nullable=True)
-    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)

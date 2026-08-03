@@ -5,10 +5,10 @@
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db.base import Base, TimeStampMixin
+from db.base import AuditMixin, Base, TimeStampMixin
 
 
-class OrderAttachments(TimeStampMixin, Base):
+class OrderAttachments(TimeStampMixin, AuditMixin, Base):
     __tablename__ = "order_attachment"
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)

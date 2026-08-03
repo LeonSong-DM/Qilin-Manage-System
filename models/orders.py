@@ -9,10 +9,10 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.enum import OrderPriority, OrderStatus, OutboundStatus
-from db.base import Base, TimeStampMixin
+from db.base import AuditMixin, Base, TimeStampMixin
 
 
-class Orders(TimeStampMixin, Base):
+class Orders(TimeStampMixin, AuditMixin, Base):
     __tablename__ = "orders"
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
@@ -51,4 +51,3 @@ class Orders(TimeStampMixin, Base):
         Boolean(), nullable=False, default=False
     )
     client_id: Mapped[int] = mapped_column(Integer(), nullable=False)
-    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)

@@ -32,6 +32,7 @@ def create_outbound_record(
         order_id=outbound_record_create.order_id,
         outbound_quantity=outbound_record_create.outbound_quantity,
         outbound_weight=outbound_record_create.outbound_weight,
+        updated_by=current_user_id,
         created_by=current_user_id,
     )
 
@@ -45,7 +46,9 @@ def create_outbound_record(
 
 #  TODO create, modify, delete unit
 def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int):
-    unit = Units(name=unit_create.name, created_by=current_user_id)
+    unit = Units(
+        name=unit_create.name, updated_by=current_user_id, created_by=current_user_id
+    )
 
     try:
         session.add(unit)
@@ -55,7 +58,9 @@ def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int)
         raise
 
 
-def modify_unit_name(session: Session, unit_id: int, unit_modify: UnitUpdate):
+def modify_unit_name(
+    session: Session, unit_id: int, unit_modify: UnitUpdate, current_user_id
+):
     """modify the unit name"""
     unit = session.get(Units, unit_id)
 
@@ -89,7 +94,9 @@ def create_process_method(
     session: Session, process_method_create: ProcessMethodCreate, current_user_id: int
 ):
     process_method = ProcessMethods(
-        method_name=process_method_create.method_name, created_by=current_user_id
+        method_name=process_method_create.method_name,
+        updated_by=current_user_id,
+        created_by=current_user_id,
     )
     try:
         session.add(process_method)
@@ -121,6 +128,7 @@ def create_process_option(
     process_option = ProcessOption(
         option_name=process_option_created.option_name,
         process_method_id=process_option_created.process_method_id,
+        updated_by=current_user_id,
         created_by=current_user_id,
     )
 
@@ -154,6 +162,7 @@ def create_client(session: Session, client_create: ClientCreate, current_user_id
         client_name=client_create.client_name,
         contact_phone_number=client_create.contact_phone_number,
         address=client_create.address,
+        updated_by=current_user_id,
         created_by=current_user_id,
     )
     try:

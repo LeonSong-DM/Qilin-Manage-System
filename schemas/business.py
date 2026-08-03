@@ -35,3 +35,9 @@ class ClientCreate(BaseModel):
         min_length=11, max_length=11, pattern=r"^1[3-9]\d{9}$"
     )
     address: str = Field(max_length=255)
+
+
+class ClientUpdate(BaseModel):
+    client_name: str | None = Field(min_length=1, max_length=64, default=None)
+    contact_phone_number: str | None = Field(min_length=11, max_length=11, default=None)
+    address: str | None = Field(max_length=255, default=None)

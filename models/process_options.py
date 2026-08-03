@@ -5,13 +5,12 @@
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db.base import Base, TimeStampMixin
+from db.base import AuditMixin, Base, TimeStampMixin
 
 
-class ProcessOption(TimeStampMixin, Base):
+class ProcessOption(TimeStampMixin, AuditMixin, Base):
     __tablename__ = "process_options"
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, autoincrement=True)
     option_name: Mapped[str] = mapped_column(String(16), unique=True)
     process_method_id: Mapped[int] = mapped_column(Integer(), nullable=False)
-    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)

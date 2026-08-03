@@ -7,10 +7,10 @@ from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.enum import UserRole, UserStatus
-from db.base import Base, TimeStampMixin
+from db.base import AuditMixin, Base, TimeStampMixin
 
 
-class Users(TimeStampMixin, Base):
+class Users(TimeStampMixin, AuditMixin, Base):
     """用户信息"""
 
     __tablename__ = "users"
@@ -24,4 +24,3 @@ class Users(TimeStampMixin, Base):
     status: Mapped[UserStatus] = mapped_column(
         SQLEnum(UserStatus), nullable=False, default=UserStatus.NORMAL
     )
-    created_by: Mapped[int] = mapped_column(Integer(), nullable=False)
