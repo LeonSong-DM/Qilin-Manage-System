@@ -14,9 +14,13 @@ class UnitUpdate(BaseModel):
 
 
 class OutboundRecordCreate(BaseModel):
-    order_id: int
     outbound_quantity: int = Field(gt=0)
     outbound_weight: int = Field(gt=0)
+
+
+class OutBoundRecordUpdate(BaseModel):
+    outbound_quantity: int | None = Field(gt=0, default=None)
+    outbound_weight: int | None = Field(gt=0, default=None)
 
 
 class ProcessMethodCreate(BaseModel):
