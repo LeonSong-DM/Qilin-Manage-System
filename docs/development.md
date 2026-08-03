@@ -112,38 +112,320 @@
 
 ### 2.1 字段命名规则
 
-用户编号：QLUYYYYMMDDXXX, 14
-订单编号: QLORDYYYYMMDDXXX,16
-出库编号: QLOUTYYYYMMDDXXX,16
-排产编号: QLPSYYYYMMDDXXX, 15
-单位编号： XXX, 3
-处理方法编号： XXX, 3
-处理选项编号： XXX, 3
+#### 2.1.1 数据库字段命名
+
+- 数据库表名使用小写 snake_case，业务表优先使用复数或明确业务名，例如 `users`、`orders`、`process_methods`。
+- 数据库字段名使用小写 snake_case，例如 `order_number`、`created_by`、`goods_weight`。
+- 主键统一命名为 `id`，类型优先使用自增整数。
+- 业务编号字段使用 `{business}_number` 命名，例如 `user_number`、`order_number`、`outbound_number`。
+- 外键引用字段使用 `{target}_id` 命名，例如 `client_id`、`order_id`、`process_method_id`。
+- 布尔字段使用 `is_`、`confirm_` 等能表达状态的前缀，例如 `is_closed`、`confirm_harvest`。
+- 枚举状态字段使用 `{business}_status` 命名，例如 `order_status`、`outbound_status`。
+- 时间字段统一使用 `_at` 后缀表达系统记录时间，例如 `create_at`、`updated_at`；业务日期可使用 `_time` 或 `_date`，例如 `goods_delivery_time`、`schedule_date`。
+- 创建人与更新人统一使用 `created_by`、`updated_by`，保存用户表主键 `users.id`。
+
+#### 2.1.2 业务编号规则
+
+| 编号类型 | 字段                         | 规则               | 长度 | 示例               |
+| -------- | ---------------------------- | ------------------ | ---- | ------------------ |
+| 用户编号 | `user_number`                | `QLUYYYYMMDDXXX`   | 14   | `QLU20260803001`   |
+| 客户编号 | `client_number`              | `QLCYYYYMMDDXXX`   | 14   | `QLC20260803001`   |
+| 订单编号 | `order_number`               | `QLORDYYYYMMDDXXX` | 16   | `QLORD20260803001` |
+| 出库编号 | `outbound_number`            | `QLOUTYYYYMMDDXXX` | 16   | `QLOUT20260803001` |
+| 排产编号 | `production_schedule_number` | `QLPSYYYYMMDDXXX`  | 15   | `QLPS20260803001`  |
+
+> 当前模型中 `outbound_number`、`production_schedule_number` 的数据库长度仍为 `String(12)`，后续应调整为与编号规则一致。
+
+### 2.2 通用字段
+
+继承 `TimeStampMixin` 的表包含以下字段：
+
+| 字段         | 类型                      | 约束                                     | 允许用户更新 | 说明                           |
+| ------------ | ------------------------- | ---------------------------------------- | ------------ | ------------------------------ |
+| `create_at`  | `DateTime(timezone=True)` | 非空，服务端默认当前时间                 | 否           | 创建时间，由数据库自动生成     |
+| `updated_at` | `DateTime(timezone=True)` | 非空，服务端默认当前时间，更新时自动刷新 | 否           | 最后更新时间，由数据库自动维护 |
+
+继承 `AuditMixin` 的表包含以下字段：
+
+| 字段         | 类型      | 约束 | 允许用户更新 | 说明                                                     |
+| ------------ | --------- | ---- | ------------ | -------------------------------------------------------- |
+| `created_by` | `Integer` | 非空 | 否           | 创建人，创建时由当前登录用户写入                         |
+| `updated_by` | `Integer` | 可空 | 否           | 最后更新人，创建时可写入创建人，更新时由当前登录用户写入 |
+
+### 2.3 数据库表字段
+
+#### 2.3.1 `users` 用户表
+
+| 字段              | 类型                      | 约束                | 允许用户更新 | 说明                                 |
+| ----------------- | ------------------------- | ------------------- | ------------ | ------------------------------------ |
+| `id`              | `Integer`                 | 主键，自增          | 否           | 用户内部主键                         |
+| `user_number`     | `String(14)`              | -                   | 否           | 用户业务编号，系统自动生成           |
+| `name`            | `String(16)`              | 非空                | 是           | 用户姓名                             |
+| `phone_number`    | `String(11)`              | 非空，唯一          | 是           | 手机号，登录或联系使用               |
+| `hashed_password` | `String(255)`             | 非空                | 是           | 密码哈希值，只能通过修改密码流程更新 |
+| `role`            | `Enum(UserRole)`          | 非空                | 是           | 用户角色：`admin`、`employee`        |
+| `status`          | `Enum(UserStatus)`        | 非空，默认 `normal` | 是           | 用户状态：`normal`、`forbidden`      |
+| `create_at`       | `DateTime(timezone=True)` | 非空，自动生成      | 否           | 创建时间                             |
+| `updated_at`      | `DateTime(timezone=True)` | 非空，自动更新      | 否           | 更新时间                             |
+| `created_by`      | `Integer`                 | 非空                | 否           | 创建人                               |
+| `updated_by`      | `Integer`                 | 可空                | 否           | 最后更新人                           |
+
+#### 2.3.2 `clients` 客户表
+
+| 字段                   | 类型                      | 约束           | 允许用户更新 | 说明                       |
+| ---------------------- | ------------------------- | -------------- | ------------ | -------------------------- |
+| `id`                   | `Integer`                 | 主键，自增     | 否           | 客户内部主键               |
+| `client_number`        | `String(14)`              | 非空，唯一     | 否           | 客户业务编号，系统自动生成 |
+| `client_name`          | `String(64)`              | 非空，唯一     | 是           | 客户公司名称               |
+| `contact_phone_number` | `String(11)`              | 可空，唯一     | 是           | 客户联系电话               |
+| `address`              | `String(255)`             | 可空           | 是           | 客户地址                   |
+| `create_at`            | `DateTime(timezone=True)` | 非空，自动生成 | 否           | 创建时间                   |
+| `updated_at`           | `DateTime(timezone=True)` | 非空，自动更新 | 否           | 更新时间                   |
+| `created_by`           | `Integer`                 | 非空           | 否           | 创建人                     |
+| `updated_by`           | `Integer`                 | 可空           | 否           | 最后更新人                 |
+
+#### 2.3.3 `goods_specification` 规格型号表
+
+| 字段         | 类型                      | 约束           | 允许用户更新 | 说明             |
+| ------------ | ------------------------- | -------------- | ------------ | ---------------- |
+| `id`         | `Integer`                 | 主键，自增     | 否           | 规格型号内部主键 |
+| `name`       | `String(32)`              | -              | 是           | 规格型号名称     |
+| `create_at`  | `DateTime(timezone=True)` | 非空，自动生成 | 否           | 创建时间         |
+| `updated_at` | `DateTime(timezone=True)` | 非空，自动更新 | 否           | 更新时间         |
+| `created_by` | `Integer`                 | 非空           | 否           | 创建人           |
+| `updated_by` | `Integer`                 | 可空           | 否           | 最后更新人       |
+
+#### 2.3.4 `process_methods` 处理方式表
+
+| 字段          | 类型                      | 约束           | 允许用户更新 | 说明                               |
+| ------------- | ------------------------- | -------------- | ------------ | ---------------------------------- |
+| `id`          | `Integer`                 | 主键           | 否           | 处理方式内部主键                   |
+| `method_name` | `String(16)`              | 非空，唯一     | 是           | 处理方式名称，例如镀锌、镀镍、镀铬 |
+| `create_at`   | `DateTime(timezone=True)` | 非空，自动生成 | 否           | 创建时间                           |
+| `updated_at`  | `DateTime(timezone=True)` | 非空，自动更新 | 否           | 更新时间                           |
+| `created_by`  | `Integer`                 | 非空           | 否           | 创建人                             |
+| `updated_by`  | `Integer`                 | 可空           | 否           | 最后更新人                         |
+
+#### 2.3.5 `process_options` 处理选项表
+
+| 字段                | 类型                      | 约束           | 允许用户更新 | 说明                                   |
+| ------------------- | ------------------------- | -------------- | ------------ | -------------------------------------- |
+| `id`                | `Integer`                 | 主键，自增     | 否           | 处理选项内部主键                       |
+| `option_name`       | `String(16)`              | 唯一           | 是           | 处理选项名称，例如蓝白锌、三价彩、彩锌 |
+| `process_method_id` | `Integer`                 | 非空           | 是           | 所属处理方式                           |
+| `create_at`         | `DateTime(timezone=True)` | 非空，自动生成 | 否           | 创建时间                               |
+| `updated_at`        | `DateTime(timezone=True)` | 非空，自动更新 | 否           | 更新时间                               |
+| `created_by`        | `Integer`                 | 非空           | 否           | 创建人                                 |
+| `updated_by`        | `Integer`                 | 可空           | 否           | 最后更新人                             |
+
+#### 2.3.6 `unit` 计量单位表
+
+| 字段         | 类型                      | 约束           | 允许用户更新 | 说明                     |
+| ------------ | ------------------------- | -------------- | ------------ | ------------------------ |
+| `id`         | `Integer`                 | 主键，自增     | 否           | 计量单位内部主键         |
+| `name`       | `String(8)`               | 唯一           | 是           | 单位名称，例如个、件、框 |
+| `create_at`  | `DateTime(timezone=True)` | 非空，自动生成 | 否           | 创建时间                 |
+| `updated_at` | `DateTime(timezone=True)` | 非空，自动更新 | 否           | 更新时间                 |
+| `created_by` | `Integer`                 | 非空           | 否           | 创建人                   |
+| `updated_by` | `Integer`                 | 可空           | 否           | 最后更新人               |
+
+#### 2.3.7 `orders` 订单表
+
+| 字段                         | 类型                      | 约束                      | 允许用户更新 | 说明                                                      |
+| ---------------------------- | ------------------------- | ------------------------- | ------------ | --------------------------------------------------------- |
+| `id`                         | `Integer`                 | 主键，自增                | 否           | 订单内部主键                                              |
+| `order_number`               | `String(16)`              | -                         | 否           | 订单业务编号，系统自动生成                                |
+| `goods_processing_method_id` | `Integer`                 | 非空                      | 是           | 处理方式                                                  |
+| `goods_processing_option_id` | `Integer`                 | 可空                      | 是           | 处理选项                                                  |
+| `is_closed`                  | `Boolean`                 | 默认 `False`              | 是           | 是否封闭，仅针对部分处理方式                              |
+| `goods_specification_id`     | `String(3)`               | 非空                      | 是           | 规格型号                                                  |
+| `goods_delivery_time`        | `DateTime(timezone=True)` | 可空                      | 是           | 交付时间                                                  |
+| `goods_quantity`             | `Integer`                 | 非空                      | 是           | 入库数量                                                  |
+| `goods_unit_id`              | `Integer`                 | 非空                      | 是           | 计量单位                                                  |
+| `goods_weight`               | `Integer`                 | 非空                      | 是           | 入库称重，单位公斤                                        |
+| `order_priority`             | `Enum(OrderPriority)`     | 非空                      | 是           | 订单优先级：`p0`、`p1`、`p2`、`p3`                        |
+| `order_status`               | `Enum(OrderStatus)`       | 非空，默认 `scheduling`   | 是           | 订单状态：`scheduling`、`finished`                        |
+| `order_remarks`              | `Text`                    | 可空                      | 是           | 订单备注                                                  |
+| `outbound_status`            | `Enum(OutboundStatus)`    | 非空，默认 `not_outbound` | 否           | 出库状态，由出库流程自动维护                              |
+| `goods_remaining_quantity`   | `Integer`                 | 非空                      | 否           | 剩余数量，由出库流程自动维护                              |
+| `confirm_harvest`            | `Boolean`                 | 非空，默认 `False`        | 是           | 单据是否回收，后续应限制只允许从 `False` 改为 `True` 一次 |
+| `client_id`                  | `Integer`                 | 非空                      | 是           | 所属客户                                                  |
+| `create_at`                  | `DateTime(timezone=True)` | 非空，自动生成            | 否           | 创建时间                                                  |
+| `updated_at`                 | `DateTime(timezone=True)` | 非空，自动更新            | 否           | 更新时间                                                  |
+| `created_by`                 | `Integer`                 | 非空                      | 否           | 创建人                                                    |
+| `updated_by`                 | `Integer`                 | 可空                      | 否           | 最后更新人                                                |
+
+#### 2.3.8 `out_bound_orders` 出库记录表
+
+| 字段                | 类型                      | 约束           | 允许用户更新 | 说明                       |
+| ------------------- | ------------------------- | -------------- | ------------ | -------------------------- |
+| `id`                | `Integer`                 | 主键，自增     | 否           | 出库记录内部主键           |
+| `outbound_number`   | `String(12)`              | -              | 否           | 出库业务编号，系统自动生成 |
+| `order_id`          | `Integer`                 | 非空           | 否           | 关联订单                   |
+| `outbound_quantity` | `Integer`                 | 非空           | 是           | 出库数量                   |
+| `outbound_weight`   | `Integer`                 | 非空           | 是           | 出库称重，单位公斤         |
+| `create_at`         | `DateTime(timezone=True)` | 非空，自动生成 | 否           | 创建时间                   |
+| `updated_at`        | `DateTime(timezone=True)` | 非空，自动更新 | 否           | 更新时间                   |
+| `created_by`        | `Integer`                 | 非空           | 否           | 创建人                     |
+| `updated_by`        | `Integer`                 | 可空           | 否           | 最后更新人                 |
+
+#### 2.3.9 `order_attachment` 订单附件表
+
+| 字段         | 类型                      | 约束           | 允许用户更新 | 说明                                       |
+| ------------ | ------------------------- | -------------- | ------------ | ------------------------------------------ |
+| `id`         | `Integer`                 | 主键，自增     | 否           | 附件内部主键                               |
+| `type`       | `String(32)`              | -              | 是           | 附件类型，例如入库凭据、出库凭据、回收单据 |
+| `path`       | `String(255)`             | -              | 是           | 文件存储路径                               |
+| `order_id`   | `Integer`                 | -              | 否           | 关联订单                                   |
+| `create_at`  | `DateTime(timezone=True)` | 非空，自动生成 | 否           | 创建时间                                   |
+| `updated_at` | `DateTime(timezone=True)` | 非空，自动更新 | 否           | 更新时间                                   |
+| `created_by` | `Integer`                 | 非空           | 否           | 创建人                                     |
+| `updated_by` | `Integer`                 | 可空           | 否           | 最后更新人                                 |
+
+#### 2.3.10 `production_schedule` 排产表
+
+| 字段                         | 类型                      | 约束           | 允许用户更新 | 说明                       |
+| ---------------------------- | ------------------------- | -------------- | ------------ | -------------------------- |
+| `id`                         | `Integer`                 | 主键，自增     | 否           | 排产内部主键               |
+| `production_schedule_number` | `String(12)`              | 唯一           | 否           | 排产业务编号，系统自动生成 |
+| `order_id`                   | `Integer`                 | 非空           | 是           | 排产订单                   |
+| `quantity`                   | `Integer`                 | 非空           | 是           | 排产数量                   |
+| `schedule_date`              | `DateTime`                | -              | 是           | 排产日期                   |
+| `schedule_order`             | `Integer`                 | -              | 是           | 排产顺序，用于拖拽排序     |
+| `create_at`                  | `DateTime(timezone=True)` | 非空，自动生成 | 否           | 创建时间                   |
+| `updated_at`                 | `DateTime(timezone=True)` | 非空，自动更新 | 否           | 更新时间                   |
+| `created_by`                 | `Integer`                 | 非空           | 否           | 创建人                     |
+| `updated_by`                 | `Integer`                 | 可空           | 否           | 最后更新人                 |
+
+#### 2.3.11 `number_sequence` 编号序列表
+
+| 字段            | 类型               | 约束               | 允许用户更新 | 说明                                           |
+| --------------- | ------------------ | ------------------ | ------------ | ---------------------------------------------- |
+| `id`            | `Integer`          | 主键，自增         | 否           | 序列内部主键                                   |
+| `date`          | `Date`             | 与 `type` 联合唯一 | 否           | 编号日期                                       |
+| `type`          | `Enum(NumberType)` | 与 `date` 联合唯一 | 否           | 编号类型                                       |
+| `current_count` | `Integer`          | -                  | 否           | 当前日期和类型下的最新序号，由编号生成服务维护 |
 
 ## 三. 开发日志
 
 📅 2026-07-13 沟通记录
 
-原材料种类不需要，创建人员绑定帐号
+订单录入规则：
+
+- 不需要维护原材料种类。
+- 创建人员需要绑定登录帐号，由系统根据当前用户自动记录。
+- 订单需要保留规格型号字段。
+- 联系人和联系电话放在订单信息靠后的位置展示。
 
 工艺需求：
 
-交货日期可以为空 是否有固定交货日期。已经过了交货日期
+- 工艺种类需要作为订单核心字段。
+- 不同工艺下可以继续细分处理选项。
 
-=》 距交货剩余时间，无交货时间设置为空
+交付日期：
 
-重点、客户名称，工艺种类 ， 交货日期筛选
+- 交付日期可以为空。
+- 订单需要区分是否有固定交付日期。
+- 如果设置了交付日期，需要展示距离交付剩余时间。
+- 如果没有交付日期，剩余时间展示为空。
+- 如果已经超过交付日期，需要明确体现逾期状态。
+- 交付日期允许后续修改。
 
-交货日期可修改
+列表筛选与重点字段：
 
-手机端可以看详细信息
+- 订单列表需要支持按客户名称、工艺种类、交付日期筛选。
+- 订单展示应突出客户名称、工艺种类、交付日期和优先级。
+- 录入人允许编辑订单优先级。
 
-录入人可以编辑【1.优先级 】
+移动端与详情：
 
-规格型号字段
+- 手机端需要可以查看订单详细信息。
 
-联系人 + 练习电话放在最后
+消息与凭据：
 
-消息接收
+- 后续需要考虑消息接收能力。
+- 订单和出入库流程需要支持单据照片留存。
 
-单据照片留存
+📅 2026-07-29 开发记录
+
+- 完成项目初始化，建立 Python/FastAPI 项目基础结构，新增 `main.py`、`pyproject.toml`、`uv.lock`、`.gitignore` 和开发文档。
+
+- 开始建立 SQLAlchemy 数据模型，完成 `Base` 基类以及用户、订单、出库记录、处理方式、处理选项等核心业务模型的初版。
+
+📅 2026-07-30 开发记录
+
+- 补充订单管理相关模型，新增规格型号、排产、计量单位等模型字段。
+
+- 新增系统枚举定义，包括用户角色、订单状态、出库状态、优先级等枚举。
+
+- 重构模型文件结构，将模型文件统一调整为更明确的业务命名，例如 `users.py`、`orders.py`、`outbound_records.py`、`process_methods.py`、`process_options.py`、`units.py`。
+
+- 新增客户、订单附件、排产、计量单位等模型，并调整字段类型和部分关联字段。
+
+- 新增配置模块，从 `.env` 读取数据库连接等配置。
+
+- 完成数据库初始化模块，支持导入全部模型后创建数据表。
+
+📅 2026-07-31 开发记录
+
+- 重命名数据库初始化文件为 `db_init.py`，并增加 `DATABASE_LOG_ECHO` 配置，用于控制 SQLAlchemy SQL 日志输出。
+
+- 完善用户模型，新增用户状态字段，并规范各业务模型中的创建人字段。
+
+- 新增 JWT 配置、密码哈希依赖和安全工具，完成密码哈希、密码校验、JWT 生成与解析方法，并将安全逻辑移动到 `core/security.py`。
+
+- 重构配置和数据库会话模块，统一使用 `core/config.py` 与 `db/session.py` 管理配置和数据库连接。
+
+- 新增 `number_sequence` 编号序列表，用于实现用户、订单、出库、客户等业务编号自动生成，并修复表约束和初始化导入问题。
+
+- 新增用户创建 schema、编号生成服务和用户存在性检查逻辑。
+
+- 新增订单服务模块，初步实现订单创建流程。
+
+- 调整多张表的主键和关联字段，将业务关联逐步改为整数主键关联。
+
+📅 2026-08-01 开发记录
+
+- 继续重构模型关联方式，统一使用整数类型 `id` 作为表间关联基础。
+
+- 新增业务相关 schema，包括客户、出库记录、处理方式、处理选项、计量单位等创建结构。
+
+- 新增业务异常类型，用于封装用户已存在、业务校验失败等异常。
+
+- 调整 service 分层结构，将订单相关业务逻辑按业务模块重新拆分和整理。
+
+- 合并 `feature/order-operation` 分支，并基于功能模块重新组织后续开发方向。
+
+📅 2026-08-02 开发记录
+
+- 集中整理 `.gitignore`，统一忽略虚拟环境、缓存、日志、前端依赖和编辑器配置等本地文件。
+
+- 重构 `OrderCreate` schema，移除创建订单时不应由用户传入、应由系统自动生成或默认维护的字段。
+
+- 调整订单创建流程，由 service 层生成订单编号、订单状态、出库状态、剩余数量和单据回收默认值。
+
+- 新增 `pytest` 依赖和测试配置，为后续自动化测试做准备。
+
+- 修正出库记录创建 schema 字段，完成出库记录和计量单位创建逻辑。
+
+- 完成处理方式、处理选项、客户创建逻辑。
+
+- 使用 Ruff 格式化已有代码。
+
+- 完善用户创建逻辑，增加重复用户校验、密码哈希、事务提交和刷新。
+
+- 实现处理方式、计量单位、处理选项删除逻辑。
+
+- 将订单创建逻辑从 `business.py` 移动到独立的 `order.py`，保持业务服务模块职责更清晰。
+
+📅 2026-08-03 开发记录
+
+- 修正出库相关字段拼写，将 `outboud` 统一改为 `outbound`。
+
+- 新增计量单位名称修改功能，并将对应 schema 命名从 `UnitModify` 重构为 `UnitUpdate`。
+
+- 将删除逻辑从手写 `delete()` 语句调整为 ORM 对象删除写法，使 service 层操作风格更统一。
+
+- 新增 `AuditMixin`，集中维护 `created_by`、`updated_by` 审计字段，并让业务模型统一继承。
+
+- 新增客户信息更新功能，支持按传入字段局部更新客户名称、联系电话和地址，并在实际变更时更新 `updated_by`。
