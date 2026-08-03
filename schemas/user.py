@@ -25,6 +25,5 @@ class UserLogin(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    code: int
     access_token: str
     token_type: str = "bearer"

@@ -20,11 +20,11 @@ async def welcome():
     return {"users": "Hello"}
 
 
-@router.post("/login")
+@router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
 async def login(session: Annotated[Session, Depends(get_db)], user_login: UserLogin):
     try:
         token = user_authentication(session, user_login)
     except AuthenticationException:
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-    return LoginResponse(access_token=token, code=status.HTTP_200_OK)
+    return LoginResponse(access_token=token)
