@@ -14,6 +14,7 @@ from models.process_options import ProcessOption
 from models.units import Units
 from schemas.business import (
     ClientCreate,
+    ClientUpdate,
     OutboundRecordCreate,
     ProcessMethodCreate,
     ProcessOptionCreate,
@@ -173,6 +174,37 @@ def create_client(session: Session, client_create: ClientCreate, current_user_id
         raise
 
 
+def update_client(
+    session: Session, client_id: int, client_update: ClientUpdate, current_user_id
+):
+    client = session.get(Clients, client_id)
+
+    if client is None:
+        raise BusinessException(f"Client {client_id} did not exists")
+
+    client_update_data = client_update.model_dump(exclude_unset=True)
+
+    changed = False
+
+    for field, value in client_update_data.items():
+        if getattr(client, field) != value:
+            setattr(client, field, value)
+            changed = True
+
+    if not changed:
+        return client
+
+    client.updated_by = current_user_id
+
+    try:
+        session.commit()
+        session.refresh(client)
+        return client
+    except Exception:
+        session.rollback()
+        raise
+
+
 if __name__ == "__main__":
     from db.session import SessionLocal
 
@@ -185,9 +217,14 @@ if __name__ == "__main__":
         address="北京市中南海",
     )
 
+    client_update = ClientUpdate(client_name="Nicee", address="上海市")
+
     with SessionLocal() as session:
         # delete_process_method(session, process_method_id=1)
         # delete_process_option(session, process_option_id=1)
         # create_unit(session, unit_create=UnitCreate(name="个"), current_user_id=1)
         # delete_unit(session, unit_id=2)
-        pass
+        # create_client(session, client_create=client, current_user_id=1)
+        update_client(
+            session, client_id=1, client_update=client_update, current_user_id=3
+        )
