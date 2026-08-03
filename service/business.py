@@ -8,8 +8,6 @@ from sqlalchemy.orm import Session
 from core.enum import NumberType, OutboundStatus
 from core.exception import BusinessException
 from models.clients import Clients
-
-# TODO create, modify ouboud record
 from models.orders import Orders
 from models.outbound_records import OutBoundRecords
 from models.process_methods import ProcessMethods
@@ -19,6 +17,7 @@ from schemas.business import (
     ClientCreate,
     ClientUpdate,
     OutboundRecordCreate,
+    OutBoundRecordUpdate,
     ProcessMethodCreate,
     ProcessOptionCreate,
     UnitCreate,
@@ -27,6 +26,7 @@ from schemas.business import (
 from service.number_generate import get_number_by_type
 
 
+# TODO create, modify ouboud record
 def get_order_by_order_id(session: Session, order_id: int):
     order = session.get(Orders, order_id)
     if order is None:
@@ -36,9 +36,26 @@ def get_order_by_order_id(session: Session, order_id: int):
 
 
 def create_outbound_record(
-    session: Session, outbound_record_create: OutboundRecordCreate, current_user_id: int
+    session: Session,
+    order_id: int,
+    outbound_record_create: OutboundRecordCreate,
+    current_user_id: int,
 ):
-    order = get_order_by_order_id(session, outbound_record_create.order_id)
+    """创建出库记录
+
+    Args:
+        session (Session): 数据库会话
+        order_id (int): 对应的订单 ID
+        outbound_record_create (OutboundRecordCreate): 创建订单范式
+        current_user_id (int): 操作用户 ID
+
+    Raises:
+        BusinessException: 业务异常
+
+    Returns:
+        OutBoundRecord: 出库记录对象
+    """
+    order = get_order_by_order_id(session, order_id)
 
     if outbound_record_create.outbound_quantity > order.goods_remaining_quantity:
         raise BusinessException(
@@ -47,7 +64,7 @@ def create_outbound_record(
 
     outbound_record = OutBoundRecords(
         outbound_number=get_number_by_type(NumberType.OUTBOUND),
-        order_id=outbound_record_create.order_id,
+        order_id=order_id,
         outbound_quantity=outbound_record_create.outbound_quantity,
         outbound_weight=outbound_record_create.outbound_weight,
         updated_by=current_user_id,
@@ -68,6 +85,62 @@ def create_outbound_record(
         session.commit()
         session.refresh(outbound_record)
         return outbound_record
+    except Exception:
+        session.rollback()
+        raise
+
+
+def get_oubound_record_by_id(session: Session, outbound_record_id: int):
+    """通过出库记录 ID 获取出库记录"""
+    outbound_record = session.get(OutBoundRecords, outbound_record_id)
+
+    if outbound_record is None:
+        raise BusinessException("Outbound record did not exists")
+
+    return outbound_record
+
+
+def update_outbound_record(
+    session: Session,
+    order_id,
+    outbound_record_id,
+    outbound_record_update: OutBoundRecordUpdate,
+    current_user_id: int,
+):
+    """更新出库记录"""
+    outbound_record = get_oubound_record_by_id(session, outbound_record_id)
+    if outbound_record.order_id != order_id:
+        raise BusinessException(
+            "The order ID provided dose not match the order ID in the outbound record"
+        )
+    order = get_order_by_order_id(session, order_id)
+
+    if outbound_record_update.outbound_quantity is not None:
+        new_goods_remaining_quantity = (
+            order.goods_remaining_quantity
+            + outbound_record.outbound_quantity
+            - outbound_record_update.outbound_quantity
+        )
+
+        if new_goods_remaining_quantity < 0:
+            raise BusinessException("Out of stock")
+
+        # update outbound record
+        outbound_record.outbound_quantity = outbound_record_update.outbound_quantity
+        # update order
+        order.goods_remaining_quantity = new_goods_remaining_quantity
+
+    # update the weight value
+    if outbound_record_update.outbound_weight is not None:
+        outbound_record.outbound_weight = outbound_record_update.outbound_weight
+
+    order.updated_by = current_user_id
+    outbound_record.updated_by = current_user_id
+
+    try:
+        session.commit()
+        session.refresh(order)
+        session.refresh(outbound_record)
     except Exception:
         session.rollback()
         raise
