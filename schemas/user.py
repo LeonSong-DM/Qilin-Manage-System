@@ -2,7 +2,6 @@
 # @Date:   2026-07-31 13:47
 # @Description: User operation schemas
 
-
 from pydantic import BaseModel, Field, SecretStr
 
 from core.enum import UserRole, UserStatus
@@ -23,3 +22,9 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     phone_number: str = Field(min_length=11, max_length=11)
     password: SecretStr
+
+
+class LoginResponse(BaseModel):
+    code: int
+    access_token: str
+    token_type: str = "bearer"
