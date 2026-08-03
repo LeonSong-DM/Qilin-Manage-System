@@ -13,6 +13,12 @@ class BusinessException(Exception):
         super().__init__(self.message)
 
 
+class AccountException(Exception):
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(self.message)
+
+
 class UserExistedException(BusinessException):
     def __init__(self, user_create: UserCreate) -> None:
         info = {
