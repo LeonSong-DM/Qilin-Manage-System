@@ -6,7 +6,7 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.enum import OrderPriority, OrderStatus, OutboundStatus
 from db.base import AuditMixin, Base, TimeStampMixin
@@ -60,4 +60,25 @@ class Orders(TimeStampMixin, AuditMixin, Base):
     )
     client_id: Mapped[int] = mapped_column(
         Integer(), ForeignKey("clients.id"), nullable=False
+    )
+
+    client: Mapped["Clients"] = relationship(back_populates="orders")
+    goods_unit: Mapped["Units"] = relationship(back_populates="orders")
+    goods_specification: Mapped["GoodsSpecifications"] = relationship(
+        back_populates="orders"
+    )
+    goods_processing_method: Mapped["ProcessMethods"] = relationship(
+        back_populates="orders"
+    )
+    goods_processing_option: Mapped["ProcessOption | None"] = relationship(
+        back_populates="orders"
+    )
+    outbound_records: Mapped[list["OutBoundRecords"]] = relationship(
+        back_populates="order"
+    )
+    production_schedules: Mapped[list["ProductionSchedule"]] = relationship(
+        back_populates="order"
+    )
+    attachments: Mapped[list["OrderAttachments"]] = relationship(
+        back_populates="order"
     )

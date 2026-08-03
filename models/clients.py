@@ -3,7 +3,7 @@
 # @Description: Model of client
 
 from sqlalchemy import Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import AuditMixin, Base, TimeStampMixin
 
@@ -19,3 +19,5 @@ class Clients(TimeStampMixin, AuditMixin, Base):
         String(11), nullable=True, unique=True
     )
     address: Mapped[str] = mapped_column(String(255), nullable=True)
+
+    orders: Mapped[list["Orders"]] = relationship(back_populates="client")

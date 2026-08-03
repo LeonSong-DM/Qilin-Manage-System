@@ -6,7 +6,7 @@ from datetime import date
 
 from sqlalchemy import Date, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.enum import SCHEDULE_STATUS
 from db.base import AuditMixin, Base, TimeStampMixin
@@ -27,3 +27,5 @@ class ProductionSchedule(TimeStampMixin, AuditMixin, Base):
     schedule_status: Mapped[SCHEDULE_STATUS] = mapped_column(
         SQLEnum(SCHEDULE_STATUS), default=SCHEDULE_STATUS.IN_PRODUCTION
     )
+
+    order: Mapped["Orders"] = relationship(back_populates="production_schedules")

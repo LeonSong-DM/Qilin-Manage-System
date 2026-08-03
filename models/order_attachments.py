@@ -3,7 +3,7 @@
 # @Description: Model of attachments
 
 from sqlalchemy import ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import AuditMixin, Base, TimeStampMixin
 
@@ -17,3 +17,5 @@ class OrderAttachments(TimeStampMixin, AuditMixin, Base):
     order_id: Mapped[int] = mapped_column(
         Integer(), ForeignKey("orders.id"), nullable=False
     )
+
+    order: Mapped["Orders"] = relationship(back_populates="attachments")

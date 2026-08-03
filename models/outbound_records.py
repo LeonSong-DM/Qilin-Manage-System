@@ -3,7 +3,7 @@
 # @Description: Outbound records model
 
 from sqlalchemy import ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import AuditMixin, Base, TimeStampMixin
 
@@ -19,3 +19,5 @@ class OutBoundRecords(TimeStampMixin, AuditMixin, Base):
     )
     outbound_quantity: Mapped[int] = mapped_column(Integer(), nullable=False)
     outbound_weight: Mapped[int] = mapped_column(Integer(), nullable=False)
+
+    order: Mapped["Orders"] = relationship(back_populates="outbound_records")
