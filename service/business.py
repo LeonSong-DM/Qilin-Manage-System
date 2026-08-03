@@ -2,7 +2,7 @@
 # @Date:   2026-07-31 20:41
 # @Description: Operations of order
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core.enum import NumberType
@@ -71,14 +71,13 @@ def modify_unit_name(session: Session, unit_id: int, unit_modify: UnitModify):
 def delete_unit(session: Session, unit_id: int):
 
     stmt = select(Units).where(Units.id == unit_id)
-    res = session.execute(stmt).scalar_one_or_none()
+    unit = session.execute(stmt).scalar_one_or_none()
 
-    if res is None:
+    if unit is None:
         raise BusinessException("The unit did not exists")
 
-    stmt = delete(Units).where(Units.id == unit_id)
     try:
-        session.execute(stmt)
+        session.delete(unit)
         session.commit()
     except Exception:
         session.rollback()
@@ -102,14 +101,13 @@ def create_process_method(
 
 def delete_process_method(session: Session, process_method_id: int):
     stmt = select(ProcessMethods).where(ProcessMethods.id == process_method_id)
-    res = session.execute(stmt).scalar_one_or_none()
+    process_method = session.execute(stmt).scalar_one_or_none()
 
-    if res is None:
+    if process_method is None:
         raise BusinessException("The process method did not exists")
 
-    stmt = delete(ProcessMethods).where(ProcessMethods.id == process_method_id)
     try:
-        session.execute(stmt)
+        session.delete(process_method)
         session.commit()
     except Exception:
         session.rollback()
@@ -136,14 +134,13 @@ def create_process_option(
 
 def delete_process_option(session: Session, process_option_id: int):
     stmt = select(ProcessOption).where(ProcessOption.id == process_option_id)
-    res = session.execute(stmt).scalar_one_or_none()
+    process_option = session.execute(stmt).scalar_one_or_none()
 
-    if res is None:
+    if process_option is None:
         raise BusinessException("The process option did not exists")
 
-    stmt = delete(ProcessOption).where(ProcessOption.id == process_option_id)
     try:
-        session.execute(stmt)
+        session.delete(process_option)
         session.commit()
     except Exception:
         session.rollback()
@@ -181,4 +178,7 @@ if __name__ == "__main__":
 
     with SessionLocal() as session:
         # delete_process_method(session, process_method_id=1)
-        delete_process_option(session, process_option_id=1)
+        # delete_process_option(session, process_option_id=1)
+        # create_unit(session, unit_create=UnitCreate(name="个"), current_user_id=1)
+        # delete_unit(session, unit_id=2)
+        pass
