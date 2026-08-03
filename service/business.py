@@ -2,22 +2,27 @@
 # @Date:   2026-07-31 20:41
 # @Description: Operations of order
 
-from sqlalchemy import select
+from datetime import date
+
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from core.enum import NumberType, OutboundStatus
+from core.enum import NumberType, OutboundStatus, SCHEDULE_STATUS
 from core.exception import BusinessException
 from models.clients import Clients
 from models.orders import Orders
 from models.outbound_records import OutBoundRecords
 from models.process_methods import ProcessMethods
 from models.process_options import ProcessOption
+from models.production_schedule import ProductionSchedule
 from models.units import Units
 from schemas.business import (
     ClientCreate,
     ClientUpdate,
     OutboundRecordCreate,
     OutBoundRecordUpdate,
+    ProductionScheduleCreate,
+    ProductionScheduleReorder,
     ProcessMethodCreate,
     ProcessOptionCreate,
     UnitCreate,
@@ -32,6 +37,31 @@ def get_order_by_order_id(session: Session, order_id: int):
         raise BusinessException("Order did not exists")
 
     return order
+
+
+def refresh_order_outbound_status(order: Orders) -> None:
+    """根据订单剩余数量刷新出库状态"""
+    if order.goods_remaining_quantity == 0:
+        order.outbound_status = OutboundStatus.FULLY_OUTBOUND
+    elif order.goods_remaining_quantity == order.goods_quantity:
+        order.outbound_status = OutboundStatus.NOT_OUTBOUND
+    else:
+        order.outbound_status = OutboundStatus.PARTIALLY_OUTBOUND
+
+
+def complete_order_production_schedules(
+    session: Session, order_id: int, current_user_id: int
+) -> None:
+    """出库后将该订单未完成排产标记为已生产"""
+    stmt = select(ProductionSchedule).where(
+        ProductionSchedule.order_id == order_id,
+        ProductionSchedule.schedule_status == SCHEDULE_STATUS.IN_PRODUCTION,
+    )
+    production_schedules = session.execute(stmt).scalars().all()
+
+    for production_schedule in production_schedules:
+        production_schedule.schedule_status = SCHEDULE_STATUS.COMPLETED
+        production_schedule.updated_by = current_user_id
 
 
 def create_outbound_record(
@@ -72,12 +102,9 @@ def create_outbound_record(
 
     # update remaining quantity & OutBoundStatus & updated user
     order.goods_remaining_quantity -= outbound_record_create.outbound_quantity
-    order.outbound_status = (
-        OutboundStatus.FULLY_OUTBOUND
-        if order.goods_remaining_quantity == 0
-        else OutboundStatus.PARTIALLY_OUTBOUND
-    )
+    refresh_order_outbound_status(order)
     order.updated_by = current_user_id
+    complete_order_production_schedules(session, order_id, current_user_id)
 
     try:
         session.add(outbound_record)
@@ -128,6 +155,7 @@ def update_outbound_record(
         outbound_record.outbound_quantity = outbound_record_update.outbound_quantity
         # update order
         order.goods_remaining_quantity = new_goods_remaining_quantity
+        refresh_order_outbound_status(order)
 
     # update the weight value
     if outbound_record_update.outbound_weight is not None:
@@ -140,6 +168,131 @@ def update_outbound_record(
         session.commit()
         session.refresh(order)
         session.refresh(outbound_record)
+    except Exception:
+        session.rollback()
+        raise
+
+
+def get_production_schedule_by_id(
+    session: Session, production_schedule_id: int
+) -> ProductionSchedule:
+    """通过排产 ID 获取排产记录"""
+    production_schedule = session.get(ProductionSchedule, production_schedule_id)
+
+    if production_schedule is None:
+        raise BusinessException("Production schedule did not exists")
+
+    return production_schedule
+
+
+def get_next_schedule_order(session: Session, schedule_date: date) -> int:
+    """获取指定日期的下一个排产顺序"""
+    stmt = select(func.max(ProductionSchedule.schedule_order)).where(
+        ProductionSchedule.schedule_date == schedule_date
+    )
+    max_schedule_order = session.execute(stmt).scalar()
+    return (max_schedule_order or 0) + 1
+
+
+def get_scheduled_quantity_by_order_id(session: Session, order_id: int) -> int:
+    """获取订单当前未完成排产数量"""
+    stmt = select(func.sum(ProductionSchedule.quantity)).where(
+        ProductionSchedule.order_id == order_id,
+        ProductionSchedule.schedule_status == SCHEDULE_STATUS.IN_PRODUCTION,
+    )
+    scheduled_quantity = session.execute(stmt).scalar()
+    return scheduled_quantity or 0
+
+
+def create_production_schedule(
+    session: Session,
+    production_schedule_create: ProductionScheduleCreate,
+    current_user_id: int,
+):
+    """创建排产记录，追加到指定日期末尾"""
+    order = get_order_by_order_id(session, production_schedule_create.order_id)
+
+    if order.outbound_status == OutboundStatus.FULLY_OUTBOUND:
+        raise BusinessException("The order has been fully outbound")
+
+    scheduled_quantity = get_scheduled_quantity_by_order_id(session, order.id)
+    if (
+        scheduled_quantity + production_schedule_create.quantity
+        > order.goods_remaining_quantity
+    ):
+        raise BusinessException(
+            "The scheduled quantity has exceeded the remaining order quantity"
+        )
+
+    production_schedule = ProductionSchedule(
+        production_schedule_number=get_number_by_type(NumberType.PRODUCTION),
+        order_id=order.id,
+        quantity=production_schedule_create.quantity,
+        schedule_date=production_schedule_create.schedule_date,
+        schedule_order=get_next_schedule_order(
+            session, production_schedule_create.schedule_date
+        ),
+        schedule_status=SCHEDULE_STATUS.IN_PRODUCTION,
+        created_by=current_user_id,
+        updated_by=current_user_id,
+    )
+    order.updated_by = current_user_id
+
+    try:
+        session.add(production_schedule)
+        session.commit()
+        session.refresh(production_schedule)
+        return production_schedule
+    except Exception:
+        session.rollback()
+        raise
+
+
+def reorder_production_schedules(
+    session: Session,
+    schedule_date: date,
+    production_schedule_reorder: ProductionScheduleReorder,
+    current_user_id: int,
+):
+    """根据前端拖拽结果重排指定日期的排产顺序"""
+    schedule_ids = production_schedule_reorder.schedule_ids
+
+    if len(schedule_ids) != len(set(schedule_ids)):
+        raise BusinessException("Duplicate production schedule IDs are not allowed")
+
+    stmt = select(ProductionSchedule).where(
+        ProductionSchedule.schedule_date == schedule_date
+    )
+    production_schedules = session.execute(stmt).scalars().all()
+    schedule_map = {
+        production_schedule.id: production_schedule
+        for production_schedule in production_schedules
+    }
+
+    if set(schedule_ids) != set(schedule_map):
+        raise BusinessException(
+            "Production schedule IDs must match all records on the schedule date"
+        )
+
+    try:
+        for index, production_schedule in enumerate(production_schedules, start=1):
+            production_schedule.schedule_order = -index
+            production_schedule.updated_by = current_user_id
+
+        session.flush()
+
+        for index, schedule_id in enumerate(schedule_ids, start=1):
+            schedule_map[schedule_id].schedule_order = index
+            schedule_map[schedule_id].updated_by = current_user_id
+
+        session.commit()
+
+        reordered_schedules = [
+            schedule_map[schedule_id] for schedule_id in schedule_ids
+        ]
+        for production_schedule in reordered_schedules:
+            session.refresh(production_schedule)
+        return reordered_schedules
     except Exception:
         session.rollback()
         raise

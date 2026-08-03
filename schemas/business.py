@@ -2,6 +2,8 @@
 # @Date:   2026-08-01 11:44
 # @Description:  Schemas of business
 
+from datetime import date
+
 from pydantic import BaseModel, Field
 
 
@@ -45,3 +47,13 @@ class ClientUpdate(BaseModel):
     client_name: str | None = Field(min_length=1, max_length=64, default=None)
     contact_phone_number: str | None = Field(min_length=11, max_length=11, default=None)
     address: str | None = Field(max_length=255, default=None)
+
+
+class ProductionScheduleCreate(BaseModel):
+    order_id: int
+    quantity: int = Field(gt=0)
+    schedule_date: date
+
+
+class ProductionScheduleReorder(BaseModel):
+    schedule_ids: list[int] = Field(min_length=1)
