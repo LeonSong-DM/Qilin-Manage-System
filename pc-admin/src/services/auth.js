@@ -1,23 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
-const TOKEN_KEY = 'qilin_pc_token'
-const USER_KEY = 'qilin_pc_user'
-
-async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  })
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}))
-    throw new Error(data.detail ?? data.message ?? '请求失败')
-  }
-
-  return response.json()
-}
+import { TOKEN_KEY, USER_KEY, authHeaders, request } from './http'
 
 export function getStoredToken() {
   return localStorage.getItem(TOKEN_KEY)
@@ -55,9 +36,7 @@ export async function login(payload) {
 
   const token = loginResult.access_token
   const user = await request('/users/me', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: authHeaders(token),
   })
 
   return { token, user }
@@ -71,9 +50,7 @@ export async function getCurrentUser(token = getStoredToken()) {
 
   try {
     return await request('/users/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: authHeaders(token),
     })
   } catch (error) {
     clearAuth()

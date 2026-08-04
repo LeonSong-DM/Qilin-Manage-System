@@ -14,7 +14,9 @@ import { Button, Checkbox, ConfigProvider, Form, Input, message } from 'antd'
 import DarkVeil from './DarkVeil'
 import dataViewLeft from './assets/data_view_left.jpg'
 import dataViewRight from './assets/data_view_right.jpg'
+import { OrdersPage } from './pages/OrdersPage'
 import { clearAuth, getCurrentUser, login, storeAuth } from './services/auth'
+import { AUTH_EXPIRED_EVENT } from './services/http'
 import './App.css'
 
 const navItems = [
@@ -24,6 +26,62 @@ const navItems = [
   { key: 'outbound', label: '出库记录', icon: <TruckOutlined /> },
   { key: 'information', label: '信息管理', icon: <ControlOutlined /> },
 ]
+
+const kpiMetrics = [
+  {
+    key: 'orders',
+    title: '订单数量',
+    value: '128',
+    trend: '+12.8%',
+    tone: 'violet',
+    sparkline: '4,42 22,34 40,38 58,24 76,28 94,14 112,18',
+  },
+  {
+    key: 'clients',
+    title: '客户数量',
+    value: '46',
+    trend: '+8.4%',
+    tone: 'blue',
+    sparkline: '4,38 22,30 40,34 58,22 76,26 94,18 112,12',
+  },
+  {
+    key: 'schedules',
+    title: '排产订单',
+    value: '32',
+    trend: '+5.6%',
+    tone: 'green',
+    sparkline: '4,40 22,36 40,28 58,32 76,18 94,22 112,10',
+  },
+  {
+    key: 'outbound',
+    title: '出库记录',
+    value: '87',
+    trend: '+9.1%',
+    tone: 'rose',
+    sparkline: '4,36 22,40 40,26 58,30 76,20 94,16 112,8',
+  },
+]
+
+function Sparkline({ points }) {
+  return (
+    <svg className="kpi-sparkline" viewBox="0 0 116 48" aria-hidden="true">
+      <polyline points={points} />
+    </svg>
+  )
+}
+
+function TrendValue({ value }) {
+  const sign = value.slice(0, 1)
+  const percentage = value.endsWith('%') ? value.slice(1, -1) : value.slice(1)
+
+  return (
+    <div className="kpi-card-trend">
+      <span>{sign}</span>
+      <strong>{percentage}</strong>
+      <em>%</em>
+    </div>
+  )
+}
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null)
@@ -55,6 +113,21 @@ function App() {
 
     return () => {
       ignore = true
+    }
+  }, [])
+
+  useEffect(() => {
+    function handleAuthExpired() {
+      clearAuth()
+      setCurrentUser(null)
+      setActiveNav(navItems[0].key)
+      message.warning('登录已过期，请重新登录')
+    }
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired)
+
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired)
     }
   }, [])
 
@@ -169,15 +242,42 @@ function App() {
             <div className="data-panel">
               <div className="data-panel-inner">
                 {activeNav === 'overview' ? (
-                  <div className="overview-image-row">
-                    <figure className="overview-image-card overview-image-card-left">
-                      <img src={dataViewLeft} alt="金属件生产展示" />
-                    </figure>
-                    <figure className="overview-image-card overview-image-card-right">
-                      <img src={dataViewRight} alt="金属材料展示" />
-                    </figure>
-                  </div>
+                  <>
+                    <div className="overview-image-row">
+                      <figure className="overview-image-card overview-image-card-left">
+                        <img src={dataViewLeft} alt="金属件生产展示" />
+                        <figcaption className="overview-image-mask">
+                          <strong>Welcome Back</strong>
+                          <span>{currentUser?.name}</span>
+                        </figcaption>
+                      </figure>
+                      <figure className="overview-image-card overview-image-card-right">
+                        <img src={dataViewRight} alt="金属材料展示" />
+                      </figure>
+                    </div>
+
+                    <section className="kpi-card-grid" aria-label="核心指标">
+                      {kpiMetrics.map((metric) => (
+                        <article
+                          className={`kpi-card kpi-card-${metric.tone}`}
+                          key={metric.key}
+                        >
+                          <div className="kpi-card-main">
+                            <span className="kpi-card-title">{metric.title}</span>
+                            <div className="kpi-card-value-row">
+                              <strong className="kpi-card-value">{metric.value}</strong>
+                              <TrendValue value={metric.trend} />
+                            </div>
+                          </div>
+                          <div className="kpi-chart-area">
+                            <Sparkline points={metric.sparkline} />
+                          </div>
+                        </article>
+                      ))}
+                    </section>
+                  </>
                 ) : null}
+                {activeNav === 'orders' ? <OrdersPage /> : null}
               </div>
             </div>
           </section>
