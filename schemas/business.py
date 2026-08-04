@@ -15,6 +15,15 @@ class UnitUpdate(BaseModel):
     name: str = Field(min_length=1, max_length=8)
 
 
+class UnitInfo(BaseModel):
+    id: int
+    name: str
+    created_by: int
+    updated_by: int | None
+
+    model_config = {"from_attributes": True}
+
+
 class OutboundRecordCreate(BaseModel):
     outbound_quantity: int = Field(gt=0)
     outbound_weight: int = Field(gt=0)
@@ -29,9 +38,35 @@ class ProcessMethodCreate(BaseModel):
     method_name: str = Field(min_length=1, max_length=16)
 
 
+class ProcessMethodUpdate(BaseModel):
+    method_name: str = Field(min_length=1, max_length=16)
+
+
+class ProcessMethodInfo(BaseModel):
+    id: int
+    method_name: str
+    created_by: int
+    updated_by: int | None
+
+    model_config = {"from_attributes": True}
+
+
 class ProcessOptionCreate(BaseModel):
     option_name: str = Field(min_length=1, max_length=16)
-    process_method_id: int = Field()
+
+
+class ProcessOptionUpdate(BaseModel):
+    option_name: str = Field(min_length=1, max_length=16)
+
+
+class ProcessOptionInfo(BaseModel):
+    id: int
+    option_name: str
+    process_method_id: int
+    created_by: int
+    updated_by: int | None
+
+    model_config = {"from_attributes": True}
 
 
 class ClientCreate(BaseModel):

@@ -22,7 +22,9 @@ from schemas.business import (
     OutboundRecordCreate,
     OutBoundRecordUpdate,
     ProcessMethodCreate,
+    ProcessMethodUpdate,
     ProcessOptionCreate,
+    ProcessOptionUpdate,
     ProductionScheduleCreate,
     ProductionScheduleReorder,
     UnitCreate,
@@ -300,6 +302,9 @@ def reorder_production_schedules(
 
 def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int):
     """创建单位"""
+    if get_unit_by_name(session, unit_create.name) is not None:
+        raise BusinessException("Unit already exists")
+
     unit = Units(
         name=unit_create.name, updated_by=current_user_id, created_by=current_user_id
     )
@@ -307,33 +312,63 @@ def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int)
     try:
         session.add(unit)
         session.commit()
+        session.refresh(unit)
+        return unit
     except Exception:
         session.rollback()
         raise
+
+
+def get_unit_by_name(session: Session, name: str):
+    """通过名称获取单位"""
+    stmt = select(Units).where(Units.name == name)
+    return session.execute(stmt).scalar_one_or_none()
+
+
+def get_units(session: Session, skip: int = 0, limit: int = 100):
+    """查询单位列表"""
+    stmt = select(Units).order_by(Units.id)
+    return session.execute(stmt.offset(skip).limit(limit)).scalars().all()
+
+
+def get_unit_by_id(session: Session, unit_id: int) -> Units:
+    """通过 ID 获取单位"""
+    unit = session.get(Units, unit_id)
+
+    if unit is None:
+        raise BusinessException(f"Unit {unit_id} did not exist")
+
+    return unit
 
 
 def modify_unit_name(
     session: Session, unit_id: int, unit_modify: UnitUpdate, current_user_id
 ):
     """modify the unit name"""
-    unit = session.get(Units, unit_id)
-
-    if unit is None:
-        raise BusinessException(f"Unit {unit_id} did not exist")
+    unit = get_unit_by_id(session, unit_id)
+    existed_unit = get_unit_by_name(session, unit_modify.name)
+    if existed_unit is not None and existed_unit.id != unit_id:
+        raise BusinessException("Unit already exists")
 
     unit.name = unit_modify.name
-    session.commit()
-    session.refresh(unit)
-    return unit
+    unit.updated_by = current_user_id
+
+    try:
+        session.commit()
+        session.refresh(unit)
+        return unit
+    except Exception:
+        session.rollback()
+        raise
 
 
 def delete_unit(session: Session, unit_id: int):
     """删除单位"""
-    stmt = select(Units).where(Units.id == unit_id)
-    unit = session.execute(stmt).scalar_one_or_none()
-
-    if unit is None:
-        raise BusinessException("The unit did not exists")
+    unit = get_unit_by_id(session, unit_id)
+    stmt = select(func.count()).select_from(Orders).where(Orders.goods_unit_id == unit_id)
+    order_count = session.execute(stmt).scalar_one()
+    if order_count > 0:
+        raise BusinessException("Unit is used by orders")
 
     try:
         session.delete(unit)
@@ -347,6 +382,9 @@ def create_process_method(
     session: Session, process_method_create: ProcessMethodCreate, current_user_id: int
 ):
     """创建处理方式"""
+    if get_process_method_by_name(session, process_method_create.method_name) is not None:
+        raise BusinessException("Process method already exists")
+
     process_method = ProcessMethods(
         method_name=process_method_create.method_name,
         updated_by=current_user_id,
@@ -355,18 +393,81 @@ def create_process_method(
     try:
         session.add(process_method)
         session.commit()
+        session.refresh(process_method)
+        return process_method
+    except Exception:
+        session.rollback()
+        raise
+
+
+def get_process_method_by_name(session: Session, method_name: str):
+    """通过名称获取处理方式"""
+    stmt = select(ProcessMethods).where(ProcessMethods.method_name == method_name)
+    return session.execute(stmt).scalar_one_or_none()
+
+
+def get_process_methods(session: Session, skip: int = 0, limit: int = 100):
+    """查询处理方式列表"""
+    stmt = select(ProcessMethods).order_by(ProcessMethods.id)
+    return session.execute(stmt.offset(skip).limit(limit)).scalars().all()
+
+
+def get_process_method_by_id(session: Session, process_method_id: int) -> ProcessMethods:
+    """通过 ID 获取处理方式"""
+    process_method = session.get(ProcessMethods, process_method_id)
+
+    if process_method is None:
+        raise BusinessException("The process method did not exists")
+
+    return process_method
+
+
+def update_process_method(
+    session: Session,
+    process_method_id: int,
+    process_method_update: ProcessMethodUpdate,
+    current_user_id: int,
+):
+    """更新处理方式"""
+    process_method = get_process_method_by_id(session, process_method_id)
+    existed_process_method = get_process_method_by_name(
+        session, process_method_update.method_name
+    )
+    if (
+        existed_process_method is not None
+        and existed_process_method.id != process_method_id
+    ):
+        raise BusinessException("Process method already exists")
+
+    process_method.method_name = process_method_update.method_name
+    process_method.updated_by = current_user_id
+
+    try:
+        session.commit()
+        session.refresh(process_method)
+        return process_method
     except Exception:
         session.rollback()
         raise
 
 
 def delete_process_method(session: Session, process_method_id: int):
-    """ "删除处理方式"""
-    stmt = select(ProcessMethods).where(ProcessMethods.id == process_method_id)
-    process_method = session.execute(stmt).scalar_one_or_none()
-
-    if process_method is None:
-        raise BusinessException("The process method did not exists")
+    """删除处理方式"""
+    process_method = get_process_method_by_id(session, process_method_id)
+    option_count_stmt = (
+        select(func.count())
+        .select_from(ProcessOption)
+        .where(ProcessOption.process_method_id == process_method_id)
+    )
+    order_count_stmt = (
+        select(func.count())
+        .select_from(Orders)
+        .where(Orders.goods_processing_method_id == process_method_id)
+    )
+    if session.execute(option_count_stmt).scalar_one() > 0:
+        raise BusinessException("Process method has options")
+    if session.execute(order_count_stmt).scalar_one() > 0:
+        raise BusinessException("Process method is used by orders")
 
     try:
         session.delete(process_method)
@@ -377,12 +478,24 @@ def delete_process_method(session: Session, process_method_id: int):
 
 
 def create_process_option(
-    session: Session, process_option_created: ProcessOptionCreate, current_user_id: int
+    session: Session,
+    process_method_id: int,
+    process_option_created: ProcessOptionCreate,
+    current_user_id: int,
 ):
     """创建处理选项"""
+    get_process_method_by_id(session, process_method_id)
+    if (
+        get_process_option_by_name(
+            session, process_method_id, process_option_created.option_name
+        )
+        is not None
+    ):
+        raise BusinessException("Process option already exists")
+
     process_option = ProcessOption(
         option_name=process_option_created.option_name,
-        process_method_id=process_option_created.process_method_id,
+        process_method_id=process_method_id,
         updated_by=current_user_id,
         created_by=current_user_id,
     )
@@ -390,18 +503,98 @@ def create_process_option(
     try:
         session.add(process_option)
         session.commit()
+        session.refresh(process_option)
+        return process_option
     except Exception:
         session.rollback()
         raise
 
 
-def delete_process_option(session: Session, process_option_id: int):
-    """删除处理选项"""
-    stmt = select(ProcessOption).where(ProcessOption.id == process_option_id)
-    process_option = session.execute(stmt).scalar_one_or_none()
+def get_process_options(
+    session: Session, process_method_id: int, skip: int = 0, limit: int = 100
+):
+    """查询指定处理方式下的处理选项"""
+    get_process_method_by_id(session, process_method_id)
+    stmt = (
+        select(ProcessOption)
+        .where(ProcessOption.process_method_id == process_method_id)
+        .order_by(ProcessOption.id)
+    )
+    return session.execute(stmt.offset(skip).limit(limit)).scalars().all()
+
+
+def get_process_option_by_name(
+    session: Session, process_method_id: int, option_name: str
+):
+    """通过处理方式和名称获取处理选项"""
+    stmt = select(ProcessOption).where(
+        ProcessOption.process_method_id == process_method_id,
+        ProcessOption.option_name == option_name,
+    )
+    return session.execute(stmt).scalar_one_or_none()
+
+
+def get_process_option_by_id(
+    session: Session, process_method_id: int, process_option_id: int
+) -> ProcessOption:
+    """通过 ID 获取处理选项，并校验所属处理方式"""
+    process_option = session.get(ProcessOption, process_option_id)
 
     if process_option is None:
         raise BusinessException("The process option did not exists")
+
+    if process_option.process_method_id != process_method_id:
+        raise BusinessException("Process option does not belong to process method")
+
+    return process_option
+
+
+def update_process_option(
+    session: Session,
+    process_method_id: int,
+    process_option_id: int,
+    process_option_update: ProcessOptionUpdate,
+    current_user_id: int,
+):
+    """更新处理选项"""
+    process_option = get_process_option_by_id(
+        session, process_method_id, process_option_id
+    )
+    existed_process_option = get_process_option_by_name(
+        session, process_method_id, process_option_update.option_name
+    )
+    if (
+        existed_process_option is not None
+        and existed_process_option.id != process_option_id
+    ):
+        raise BusinessException("Process option already exists")
+
+    process_option.option_name = process_option_update.option_name
+    process_option.updated_by = current_user_id
+
+    try:
+        session.commit()
+        session.refresh(process_option)
+        return process_option
+    except Exception:
+        session.rollback()
+        raise
+
+
+def delete_process_option(
+    session: Session, process_method_id: int, process_option_id: int
+):
+    """删除处理选项"""
+    process_option = get_process_option_by_id(
+        session, process_method_id, process_option_id
+    )
+    stmt = (
+        select(func.count())
+        .select_from(Orders)
+        .where(Orders.goods_processing_option_id == process_option_id)
+    )
+    if session.execute(stmt).scalar_one() > 0:
+        raise BusinessException("Process option is used by orders")
 
     try:
         session.delete(process_option)
@@ -465,7 +658,7 @@ if __name__ == "__main__":
     from db.session import SessionLocal
 
     process_method = ProcessMethodCreate(method_name="镀锌")
-    process_option = ProcessOptionCreate(option_name="三价彩", process_method_id=1)
+    process_option = ProcessOptionCreate(option_name="三价彩")
     client = ClientCreate(
         client_number=get_number_by_type(NumberType.CLIENT),
         client_name="Hello",
