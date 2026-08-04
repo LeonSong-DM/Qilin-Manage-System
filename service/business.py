@@ -697,8 +697,18 @@ def delete_process_option(
 
 def create_client(session: Session, client_create: ClientCreate, current_user_id: int):
     """创建客户"""
+    if get_client_by_name(session, client_create.client_name) is not None:
+        raise BusinessException("Client already exists")
+
+    if (
+        client_create.contact_phone_number is not None
+        and get_client_by_phone_number(session, client_create.contact_phone_number)
+        is not None
+    ):
+        raise BusinessException("Client phone number already exists")
+
     client = Clients(
-        client_number=client_create.client_number,
+        client_number=get_number_by_type(NumberType.CLIENT),
         client_name=client_create.client_name,
         contact_phone_number=client_create.contact_phone_number,
         address=client_create.address,
@@ -708,21 +718,74 @@ def create_client(session: Session, client_create: ClientCreate, current_user_id
     try:
         session.add(client)
         session.commit()
+        session.refresh(client)
+        return client
     except Exception:
         session.rollback()
         raise
+
+
+def get_clients(
+    session: Session,
+    skip: int = 0,
+    limit: int = 100,
+    client_name: str | None = None,
+    contact_phone_number: str | None = None,
+):
+    """查询客户列表"""
+    stmt = select(Clients).order_by(Clients.id.desc())
+
+    if client_name is not None:
+        stmt = stmt.where(Clients.client_name.like(f"%{client_name}%"))
+    if contact_phone_number is not None:
+        stmt = stmt.where(Clients.contact_phone_number.like(f"%{contact_phone_number}%"))
+
+    return session.execute(stmt.offset(skip).limit(limit)).scalars().all()
+
+
+def get_client_by_id(session: Session, client_id: int) -> Clients:
+    """通过 ID 获取客户"""
+    client = session.get(Clients, client_id)
+
+    if client is None:
+        raise BusinessException(f"Client {client_id} did not exists")
+
+    return client
+
+
+def get_client_by_name(session: Session, client_name: str):
+    """通过客户名称获取客户"""
+    stmt = select(Clients).where(Clients.client_name == client_name)
+    return session.execute(stmt).scalar_one_or_none()
+
+
+def get_client_by_phone_number(session: Session, contact_phone_number: str):
+    """通过联系电话获取客户"""
+    stmt = select(Clients).where(
+        Clients.contact_phone_number == contact_phone_number
+    )
+    return session.execute(stmt).scalar_one_or_none()
 
 
 def update_client(
     session: Session, client_id: int, client_update: ClientUpdate, current_user_id
 ):
     """更新客户信息"""
-    client = session.get(Clients, client_id)
-
-    if client is None:
-        raise BusinessException(f"Client {client_id} did not exists")
+    client = get_client_by_id(session, client_id)
 
     client_update_data = client_update.model_dump(exclude_unset=True)
+
+    if "client_name" in client_update_data:
+        existed_client = get_client_by_name(session, client_update_data["client_name"])
+        if existed_client is not None and existed_client.id != client_id:
+            raise BusinessException("Client already exists")
+
+    if "contact_phone_number" in client_update_data:
+        existed_client = get_client_by_phone_number(
+            session, client_update_data["contact_phone_number"]
+        )
+        if existed_client is not None and existed_client.id != client_id:
+            raise BusinessException("Client phone number already exists")
 
     changed = False
 
@@ -751,7 +814,6 @@ if __name__ == "__main__":
     process_method = ProcessMethodCreate(method_name="镀锌")
     process_option = ProcessOptionCreate(option_name="三价彩")
     client = ClientCreate(
-        client_number=get_number_by_type(NumberType.CLIENT),
         client_name="Hello",
         contact_phone_number="17321100008",
         address="北京市中南海",

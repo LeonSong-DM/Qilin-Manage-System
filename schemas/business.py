@@ -86,18 +86,33 @@ class ProcessOptionInfo(BaseModel):
 
 
 class ClientCreate(BaseModel):
-    client_number: str = Field(min_length=14, max_length=14)
     client_name: str = Field(min_length=1, max_length=64)
     contact_phone_number: str = Field(
         min_length=11, max_length=11, pattern=r"^1[3-9]\d{9}$"
     )
-    address: str = Field(max_length=255)
+    address: str | None = Field(max_length=255, default=None)
 
 
 class ClientUpdate(BaseModel):
     client_name: str | None = Field(min_length=1, max_length=64, default=None)
-    contact_phone_number: str | None = Field(min_length=11, max_length=11, default=None)
+    contact_phone_number: str | None = Field(
+        min_length=11, max_length=11, pattern=r"^1[3-9]\d{9}$", default=None
+    )
     address: str | None = Field(max_length=255, default=None)
+
+
+class ClientInfo(BaseModel):
+    id: int
+    client_number: str
+    client_name: str
+    contact_phone_number: str | None
+    address: str | None
+    created_by: int
+    updated_by: int | None
+    create_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class ProductionScheduleCreate(BaseModel):
