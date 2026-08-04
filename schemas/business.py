@@ -6,6 +6,8 @@ from datetime import date
 
 from pydantic import BaseModel, Field
 
+from core.enum import SCHEDULE_STATUS
+
 
 class UnitCreate(BaseModel):
     name: str = Field(min_length=1, max_length=8)
@@ -92,3 +94,21 @@ class ProductionScheduleCreate(BaseModel):
 
 class ProductionScheduleReorder(BaseModel):
     schedule_ids: list[int] = Field(min_length=1)
+
+
+class ProductionScheduleStatusUpdate(BaseModel):
+    schedule_status: SCHEDULE_STATUS
+
+
+class ProductionScheduleInfo(BaseModel):
+    id: int
+    production_schedule_number: str
+    order_id: int
+    quantity: int
+    schedule_date: date
+    schedule_order: int
+    schedule_status: SCHEDULE_STATUS
+    created_by: int
+    updated_by: int | None
+
+    model_config = {"from_attributes": True}

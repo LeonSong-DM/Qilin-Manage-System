@@ -27,6 +27,7 @@ from schemas.business import (
     ProcessOptionUpdate,
     ProductionScheduleCreate,
     ProductionScheduleReorder,
+    ProductionScheduleStatusUpdate,
     UnitCreate,
     UnitUpdate,
 )
@@ -187,6 +188,31 @@ def get_production_schedule_by_id(
     return production_schedule
 
 
+def get_production_schedules(
+    session: Session,
+    schedule_date: date | None = None,
+    order_id: int | None = None,
+    schedule_status: SCHEDULE_STATUS | None = None,
+    skip: int = 0,
+    limit: int = 100,
+):
+    """查询排产列表"""
+    stmt = select(ProductionSchedule).order_by(
+        ProductionSchedule.schedule_date,
+        ProductionSchedule.schedule_order,
+        ProductionSchedule.id,
+    )
+
+    if schedule_date is not None:
+        stmt = stmt.where(ProductionSchedule.schedule_date == schedule_date)
+    if order_id is not None:
+        stmt = stmt.where(ProductionSchedule.order_id == order_id)
+    if schedule_status is not None:
+        stmt = stmt.where(ProductionSchedule.schedule_status == schedule_status)
+
+    return session.execute(stmt.offset(skip).limit(limit)).scalars().all()
+
+
 def get_next_schedule_order(session: Session, schedule_date: date) -> int:
     """获取指定日期的下一个排产顺序"""
     stmt = select(func.max(ProductionSchedule.schedule_order)).where(
@@ -295,6 +321,37 @@ def reorder_production_schedules(
         for production_schedule in reordered_schedules:
             session.refresh(production_schedule)
         return reordered_schedules
+    except Exception:
+        session.rollback()
+        raise
+
+
+def update_production_schedule_status(
+    session: Session,
+    production_schedule_id: int,
+    production_schedule_status_update: ProductionScheduleStatusUpdate,
+    current_user_id: int,
+):
+    """更新排产状态"""
+    production_schedule = get_production_schedule_by_id(
+        session, production_schedule_id
+    )
+
+    if (
+        production_schedule.schedule_status
+        == production_schedule_status_update.schedule_status
+    ):
+        return production_schedule
+
+    production_schedule.schedule_status = (
+        production_schedule_status_update.schedule_status
+    )
+    production_schedule.updated_by = current_user_id
+
+    try:
+        session.commit()
+        session.refresh(production_schedule)
+        return production_schedule
     except Exception:
         session.rollback()
         raise

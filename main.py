@@ -5,12 +5,13 @@
 from fastapi import FastAPI
 
 import models  # noqa: F401
-from api import orders, processes, units, users
+from api import orders, processes, schedules, units, users
 
 app = FastAPI()
 
 app.include_router(orders.router)
 app.include_router(processes.router)
+app.include_router(schedules.router)
 app.include_router(units.router)
 app.include_router(users.router)
 
