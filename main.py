@@ -4,6 +4,7 @@
 
 from fastapi import FastAPI
 
+import models  # noqa: F401
 from api import orders, users
 
 app = FastAPI()
