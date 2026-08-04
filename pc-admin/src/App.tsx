@@ -20,7 +20,7 @@ function App() {
       locale={zhCN}
       theme={{
         token: {
-          colorPrimary: '#4B3D4F',
+          colorPrimary: '#1677FF',
           borderRadius: 8,
           fontFamily:
             '"Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
