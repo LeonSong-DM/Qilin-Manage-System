@@ -20,10 +20,21 @@ class UserCreate(BaseModel):
 
 
 class UserLogin(BaseModel):
-    phone_number: str = Field(min_length=11, max_length=11)
-    password: SecretStr
+    phone_number: str = Field(min_length=11, max_length=11, examples=["13800000001"])
+    password: SecretStr = Field(examples=["admin123456"])
 
 
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class UserInfo(BaseModel):
+    id: int
+    user_number: str
+    name: str
+    phone_number: str
+    role: UserRole
+    status: UserStatus
+
+    model_config = {"from_attributes": True}
