@@ -166,9 +166,11 @@ function App() {
 
           <section className="dashboard-content" aria-label="管理端内容">
             <div className="data-panel">
-              <header className="data-panel-header" key={activeNav}>
-                <h1>{activeNavItem.label}</h1>
-              </header>
+              {activeNav === 'overview' ? (
+                <header className="data-panel-header">
+                  <h1>{activeNavItem.label}</h1>
+                </header>
+              ) : null}
             </div>
           </section>
         </main>
