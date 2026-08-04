@@ -19,3 +19,5 @@ class settings:
     )  # minute
 
     JWT_KEY = os.getenv("JWT_KEY", "MMoje7EdXMUI5qaRELZTwhMb4O0UWJoax6HDIUXRahY=")
+
+    ATTACHMENTS_DIR_ROOT = os.getenv("ATTACHMENTS_DIR_ROOT", "attachments")

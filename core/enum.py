@@ -29,6 +29,12 @@ class OutboundStatus(Enum):
     FULLY_OUTBOUND = "fully_outbound"  # 未出库
 
 
+class AttachmentType(Enum):
+    INBOUND = "inbound"  # 入库留存
+    OUTBOUND = "outbound"  # 出库留存
+    HARVEST = "harvest"  # 回收单据
+
+
 # 优先级
 class OrderPriority(Enum):
     P0 = "p0"  # 最高

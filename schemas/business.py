@@ -6,7 +6,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
-from core.enum import SCHEDULE_STATUS
+from core.enum import SCHEDULE_STATUS, AttachmentType
 
 
 class UnitCreate(BaseModel):
@@ -42,6 +42,21 @@ class OutboundRecordInfo(BaseModel):
     order_id: int
     outbound_quantity: int
     outbound_weight: int
+    created_by: int
+    updated_by: int | None
+    create_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class OrderAttachmentInfo(BaseModel):
+    id: int
+    order_id: int
+    attachment_type: AttachmentType
+    filename: str
+    path: str
+    content_type: str
     created_by: int
     updated_by: int | None
     create_at: datetime
