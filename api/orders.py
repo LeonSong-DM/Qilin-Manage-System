@@ -14,7 +14,13 @@ from core.exception import BusinessException
 from db.session import get_db
 from models.users import Users
 from schemas.order import OrderCreate, OrderInfo, OrderUpdate
-from service.order import create_order, get_order_by_id, get_orders, update_order
+from service.order import (
+    create_order,
+    delete_order,
+    get_order_by_id,
+    get_orders,
+    update_order,
+)
 
 router = APIRouter(prefix="/orders", tags=["Order"])
 
@@ -90,4 +96,21 @@ async def update_order_info(
     try:
         return update_order(session, order_id, order_update, current_user.id)
     except BusinessException as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+
+
+@router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_order_info(
+    session: Annotated[Session, Depends(get_db)],
+    order_id: int,
+    current_user: Annotated[Users, Depends(require_admin)],
+):
+    """删除未排产且未出库订单"""
+    try:
+        delete_order(session, order_id)
+    except BusinessException as exc:
+        if "did not exists" in exc.message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=exc.message
+            )
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)

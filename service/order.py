@@ -5,7 +5,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from core.enum import NumberType, OrderPriority, OrderStatus, OutboundStatus
@@ -13,8 +13,10 @@ from core.exception import BusinessException
 from models.clients import Clients
 from models.goods_specifications import GoodsSpecifications
 from models.orders import Orders
+from models.outbound_records import OutBoundRecords
 from models.process_methods import ProcessMethods
 from models.process_options import ProcessOption
+from models.production_schedule import ProductionSchedule
 from models.units import Units
 from schemas.order import OrderCreate, OrderUpdate
 from service.number_generate import get_number_by_type
@@ -214,6 +216,38 @@ def update_order(
         session.commit()
         session.refresh(order)
         return order
+    except Exception:
+        session.rollback()
+        raise
+
+
+def delete_order(session: Session, order_id: int) -> None:
+    """删除未排产且未出库订单"""
+    order = get_order_by_id(session, order_id)
+
+    production_schedule_count_stmt = (
+        select(func.count())
+        .select_from(ProductionSchedule)
+        .where(ProductionSchedule.order_id == order_id)
+    )
+    production_schedule_count = session.execute(
+        production_schedule_count_stmt
+    ).scalar_one()
+    if production_schedule_count > 0:
+        raise BusinessException("Order can not be deleted after scheduling")
+
+    outbound_record_count_stmt = (
+        select(func.count())
+        .select_from(OutBoundRecords)
+        .where(OutBoundRecords.order_id == order_id)
+    )
+    outbound_record_count = session.execute(outbound_record_count_stmt).scalar_one()
+    if outbound_record_count > 0 or order.outbound_status != OutboundStatus.NOT_OUTBOUND:
+        raise BusinessException("Order can not be deleted after outbound")
+
+    try:
+        session.delete(order)
+        session.commit()
     except Exception:
         session.rollback()
         raise
