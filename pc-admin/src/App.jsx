@@ -12,6 +12,8 @@ import {
 } from '@ant-design/icons'
 import { Button, Checkbox, ConfigProvider, Form, Input, message } from 'antd'
 import DarkVeil from './DarkVeil'
+import dataViewLeft from './assets/data_view_left.jpg'
+import dataViewRight from './assets/data_view_right.jpg'
 import { clearAuth, getCurrentUser, login, storeAuth } from './services/auth'
 import './App.css'
 
@@ -164,7 +166,18 @@ function App() {
           </aside>
 
           <section className="dashboard-content" aria-label="管理端内容">
-            <div className="data-panel" />
+            <div className="data-panel">
+              {activeNav === 'overview' ? (
+                <div className="overview-image-row">
+                  <figure className="overview-image-card overview-image-card-left">
+                    <img src={dataViewLeft} alt="金属件生产展示" />
+                  </figure>
+                  <figure className="overview-image-card overview-image-card-right">
+                    <img src={dataViewRight} alt="金属材料展示" />
+                  </figure>
+                </div>
+              ) : null}
+            </div>
           </section>
         </main>
       ) : (
