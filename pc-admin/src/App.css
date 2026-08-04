@@ -253,7 +253,7 @@
   display: flex;
   align-items: stretch;
   justify-content: center;
-  gap: 20px;
+  gap: 0;
   width: 100%;
 }
 
@@ -266,13 +266,13 @@
 }
 
 .overview-image-card-left {
-  flex: 0 0 50%;
-  max-width: 50%;
+  flex: 0 0 60%;
+  max-width: 60%;
 }
 
 .overview-image-card-right {
-  flex: 0 0 30%;
-  max-width: 30%;
+  flex: 0 0 40%;
+  max-width: 40%;
 }
 
 .overview-image-card img {
