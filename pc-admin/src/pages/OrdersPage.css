@@ -162,6 +162,19 @@
 	pointer-events: auto;
 }
 
+.orders-table-shell .MuiDataGrid-cell[data-field="actions"],
+.orders-table-shell .MuiDataGrid-cell[data-field="actions"]:focus,
+.orders-table-shell .MuiDataGrid-cell[data-field="actions"]:focus-within,
+.orders-table-shell .MuiDataGrid-cell[data-field="actions"].Mui-selected,
+.orders-table-shell .orders-actions-cell,
+.orders-table-shell .orders-actions-cell:focus,
+.orders-table-shell .orders-actions-cell:focus-within,
+.orders-table-shell .orders-actions-cell.Mui-selected {
+	background: transparent !important;
+	box-shadow: none !important;
+	outline: none !important;
+}
+
 .orders-table-shell .MuiDataGrid-cell:focus,
 .orders-table-shell .MuiDataGrid-cell:focus-within,
 .orders-table-shell .MuiDataGrid-columnHeader:focus,
@@ -300,6 +313,8 @@
 
 .orders-row-action:focus,
 .orders-row-action:focus-visible {
+	background: transparent;
+	box-shadow: none;
 	outline: none;
 }
 
@@ -329,15 +344,21 @@
 
 .order-detail-header {
 	display: flex;
-	align-items: flex-start;
+	flex-direction: column;
+	align-items: stretch;
 	justify-content: flex-start;
-	gap: 16px;
+	gap: 10px;
 	margin-bottom: 18px;
+}
+
+.order-detail-back-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
 }
 
 .order-detail-title {
 	display: flex;
-	flex: 1;
 	align-items: flex-end;
 	justify-content: flex-start;
 	gap: 12px;
@@ -411,7 +432,9 @@
 }
 
 .order-summary-item strong {
-	display: block;
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
 	color: #212b36;
 	font-size: 18px;
 	font-weight: 800;
@@ -421,8 +444,7 @@
 }
 
 .order-summary-item em {
-	display: block;
-	margin-top: 5px;
+	display: inline;
 	color: #637381;
 	font-size: 13px;
 	font-style: normal;
@@ -910,11 +932,6 @@
 }
 
 @media (max-width: 760px) {
-	.order-detail-header {
-		align-items: flex-start;
-		flex-direction: column;
-	}
-
 	.order-detail-title {
 		align-items: flex-start;
 		flex-direction: column;

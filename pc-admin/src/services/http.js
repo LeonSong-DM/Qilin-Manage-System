@@ -10,13 +10,29 @@ function expireAuth() {
   window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
 }
 
+function formatErrorMessage(data) {
+  if (Array.isArray(data.detail)) {
+    return data.detail
+      .map((item) => {
+        const field = Array.isArray(item.loc) ? item.loc.slice(1).join('.') : ''
+        return field ? `${field}: ${item.msg}` : item.msg
+      })
+      .filter(Boolean)
+      .join('；')
+  }
+
+  return data.detail ?? data.message ?? '请求失败'
+}
+
 export async function request(path, options = {}) {
+  const { headers, ...restOptions } = options
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...restOptions,
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...headers,
     },
-    ...options,
   })
 
   if (!response.ok) {
@@ -25,7 +41,7 @@ export async function request(path, options = {}) {
       expireAuth()
     }
 
-    throw new Error(data.detail ?? data.message ?? '请求失败')
+    throw new Error(formatErrorMessage(data))
   }
 
   if (response.status === 204) {

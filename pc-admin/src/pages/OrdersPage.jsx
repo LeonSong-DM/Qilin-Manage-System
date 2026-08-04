@@ -58,12 +58,14 @@ function StatusPill({ children, tone = 'default' }) {
   return <span className={`orders-status-pill orders-status-${tone}`}>{children}</span>
 }
 
-function OrderSummaryItem({ label, value, meta }) {
+function OrderSummaryItem({ label, value, suffix }) {
   return (
     <div className="order-summary-item">
       <span>{label}</span>
-      <strong>{value ?? '-'}</strong>
-      {meta ? <em>{meta}</em> : null}
+      <strong>
+        {value ?? '-'}
+        {suffix ? <em>{suffix}</em> : null}
+      </strong>
     </div>
   )
 }
@@ -83,7 +85,33 @@ function toNullableNumber(value) {
     return null
   }
 
-  return Number(value)
+  const numberValue = Number(value)
+
+  return Number.isFinite(numberValue) ? numberValue : null
+}
+
+function toRequiredPositiveInteger(value, label) {
+  const numberValue = Number(value)
+
+  if (!Number.isInteger(numberValue) || numberValue <= 0) {
+    throw new Error(`${label}必须是大于 0 的整数`)
+  }
+
+  return numberValue
+}
+
+function toOptionalDateTime(value) {
+  if (!value) {
+    return null
+  }
+
+  const dateValue = dayjs(value)
+
+  if (!dateValue.isValid()) {
+    throw new Error('交付时间格式不正确')
+  }
+
+  return dateValue.format('YYYY-MM-DDTHH:mm:ss')
 }
 
 function createOrderForm(order) {
@@ -101,6 +129,63 @@ function createOrderForm(order) {
     order_remarks: order.order_remarks ?? '',
     goods_delivery_time: formatDateInput(order.goods_delivery_time),
   }
+}
+
+function addChangedValue(payload, field, nextValue, currentValue) {
+  if (nextValue !== currentValue) {
+    payload[field] = nextValue
+  }
+}
+
+function buildOrderUpdatePayload(order, form) {
+  const payload = {}
+  const nextProcessingMethodId = toRequiredPositiveInteger(
+    form.goods_processing_method_id,
+    '处理方法',
+  )
+  const nextProcessingOptionId = toNullableNumber(form.goods_processing_option_id)
+  const nextIsClosed = form.is_closed === 'true'
+  const nextSpecificationId = toRequiredPositiveInteger(
+    form.goods_specification_id,
+    '规格型号',
+  )
+  const nextDeliveryDate = form.goods_delivery_time || ''
+  const currentDeliveryDate = formatDateInput(order.goods_delivery_time)
+  const nextQuantity = toRequiredPositiveInteger(form.goods_quantity, '数量')
+  const nextUnitId = toRequiredPositiveInteger(form.goods_unit_id, '单位')
+  const nextWeight = toRequiredPositiveInteger(form.goods_weight, '重量')
+  const nextRemarks = form.order_remarks || null
+
+  addChangedValue(
+    payload,
+    'goods_processing_method_id',
+    nextProcessingMethodId,
+    order.goods_processing_method_id,
+  )
+  addChangedValue(
+    payload,
+    'goods_processing_option_id',
+    nextProcessingOptionId,
+    order.goods_processing_option_id ?? null,
+  )
+  addChangedValue(payload, 'is_closed', nextIsClosed, order.is_closed)
+  addChangedValue(
+    payload,
+    'goods_specification_id',
+    nextSpecificationId,
+    order.goods_specification_id,
+  )
+  if (nextDeliveryDate !== currentDeliveryDate) {
+    payload.goods_delivery_time = toOptionalDateTime(nextDeliveryDate)
+  }
+  addChangedValue(payload, 'goods_quantity', nextQuantity, order.goods_quantity)
+  addChangedValue(payload, 'goods_unit_id', nextUnitId, order.goods_unit_id)
+  addChangedValue(payload, 'goods_weight', nextWeight, order.goods_weight)
+  addChangedValue(payload, 'order_priority', form.order_priority, order.order_priority)
+  addChangedValue(payload, 'order_status', form.order_status, order.order_status)
+  addChangedValue(payload, 'order_remarks', nextRemarks, order.order_remarks ?? null)
+
+  return payload
 }
 
 function DetailField({
@@ -335,7 +420,7 @@ export function OrdersPage() {
   const activeMenuOpen = Boolean(activeMenu)
 
   const handleCellClick = useCallback((params, event) => {
-    if (params.field === '__check__' || params.field === 'actions') {
+    if (params.field === '__check__') {
       return
     }
 
@@ -366,7 +451,7 @@ export function OrdersPage() {
     return api.subscribeEvent(
       'cellMouseDown',
       (params, event) => {
-        if (params.field === '__check__' || params.field === 'actions') {
+        if (params.field === '__check__') {
           return
         }
 
@@ -517,25 +602,14 @@ export function OrdersPage() {
     setSaving(true)
     setSaveError('')
 
-    const payload = {
-      goods_processing_method_id: Number(orderForm.goods_processing_method_id),
-      goods_processing_option_id: toNullableNumber(
-        orderForm.goods_processing_option_id,
-      ),
-      is_closed: orderForm.is_closed === 'true',
-      goods_specification_id: Number(orderForm.goods_specification_id),
-      goods_delivery_time: orderForm.goods_delivery_time
-        ? new Date(`${orderForm.goods_delivery_time}T00:00:00`).toISOString()
-        : null,
-      goods_quantity: Number(orderForm.goods_quantity),
-      goods_unit_id: Number(orderForm.goods_unit_id),
-      goods_weight: Number(orderForm.goods_weight),
-      order_priority: orderForm.order_priority,
-      order_status: orderForm.order_status,
-      order_remarks: orderForm.order_remarks || null,
-    }
-
     try {
+      const payload = buildOrderUpdatePayload(detailOrder, orderForm)
+
+      if (Object.keys(payload).length === 0) {
+        setEditingOrder(false)
+        return
+      }
+
       const updatedOrder = await updateOrder(detailOrder.id, payload)
       const normalizedOrder = normalizeOrder(updatedOrder, referenceMaps)
 
@@ -647,12 +721,18 @@ export function OrdersPage() {
         width: 62,
         align: 'center',
         headerAlign: 'center',
+        cellClassName: 'orders-actions-cell',
+        disableColumnMenu: true,
         filterable: false,
         renderCell: (params) => (
           <button
             className="orders-row-action"
             type="button"
             aria-label="订单操作"
+            onMouseDown={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+            }}
             onClick={(event) => openOrderMenu(event, params.row)}
           >
             <MoreHorizontal size={18} strokeWidth={2.3} />
@@ -697,19 +777,21 @@ export function OrdersPage() {
       <section className="orders-page" aria-label="订单详情">
         <div className="order-detail-page">
           <div className="order-detail-header">
-            <button
-              className="order-back-button"
-              type="button"
-              onClick={() => {
-                setDetailOrder(null)
-                setOrderForm(null)
-                setEditingOrder(false)
-                setSaveError('')
-              }}
-            >
-              <ArrowLeft size={18} strokeWidth={2.4} />
-              返回
-            </button>
+            <div className="order-detail-back-row">
+              <button
+                className="order-back-button"
+                type="button"
+                onClick={() => {
+                  setDetailOrder(null)
+                  setOrderForm(null)
+                  setEditingOrder(false)
+                  setSaveError('')
+                }}
+              >
+                <ArrowLeft size={18} strokeWidth={2.4} />
+                返回
+              </button>
+            </div>
             <div className="order-detail-title">
               <span>{detailOrder.order_number}</span>
               <StatusPill tone={detailOrder.order_status}>
@@ -723,17 +805,16 @@ export function OrdersPage() {
               <OrderSummaryItem
                 label="交付日期"
                 value={formatDate(detailOrder.goods_delivery_time)}
-                meta={detailOrder.outbound_status_label}
               />
               <OrderSummaryItem
                 label="数量"
                 value={detailOrder.goods_quantity}
-                meta={detailOrder.unit_name}
+                suffix={detailOrder.unit_name}
               />
               <OrderSummaryItem
                 label="重量"
                 value={detailOrder.goods_weight}
-                meta="kg"
+                suffix="kg"
               />
             </CardContent>
           </Card>
