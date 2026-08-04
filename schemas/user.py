@@ -14,9 +14,22 @@ class UserCreate(BaseModel):
     phone_number: str = Field(
         ..., min_length=11, max_length=11, pattern=r"^1[3-9]\d{9}$"
     )
-    hashed_password: SecretStr
+    password: SecretStr
     role: UserRole
     status: UserStatus = Field(default=UserStatus.NORMAL)
+
+
+class UserUpdate(BaseModel):
+    name: str | None = Field(min_length=1, max_length=16, default=None)
+    phone_number: str | None = Field(
+        min_length=11, max_length=11, pattern=r"^1[3-9]\d{9}$", default=None
+    )
+    role: UserRole | None = None
+    status: UserStatus | None = None
+
+
+class UserPasswordUpdate(BaseModel):
+    password: SecretStr
 
 
 class UserLogin(BaseModel):

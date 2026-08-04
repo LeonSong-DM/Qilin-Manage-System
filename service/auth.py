@@ -5,6 +5,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from core.enum import UserStatus
 from core.exception import AuthenticationException
 from core.security import get_access_token, verify_password
 from models.users import Users
@@ -17,6 +18,9 @@ def user_authentication(session: Session, user_login: UserLogin):
 
     if user is None:
         raise AuthenticationException("User did not exists")
+
+    if user.status == UserStatus.FORBIDDEN:
+        raise AuthenticationException("User has been forbidden")
 
     passwd_verify_res = verify_password(
         user_login.password.get_secret_value(), user.hashed_password
