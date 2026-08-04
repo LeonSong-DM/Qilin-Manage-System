@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.enum import AttachmentType
-from core.exception import BusinessException
+from core.exception import BusinessException, NotFoundException
 from models.order_attachments import OrderAttachments
 from models.orders import Orders
 
@@ -31,7 +31,7 @@ def get_order_by_id(session: Session, order_id: int) -> Orders:
     order = session.get(Orders, order_id)
 
     if order is None:
-        raise BusinessException(f"Order {order_id} did not exists")
+        raise NotFoundException(f"Order {order_id} did not exists")
 
     return order
 
@@ -74,7 +74,7 @@ def get_order_attachment_by_id(
     attachment = session.get(OrderAttachments, attachment_id)
 
     if attachment is None:
-        raise BusinessException("Attachment did not exists")
+        raise NotFoundException("Attachment did not exists")
 
     if attachment.order_id != order_id:
         raise BusinessException("Attachment does not belong to order")

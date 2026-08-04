@@ -15,8 +15,13 @@ from api import (
     units,
     users,
 )
+from core.exception import AuthenticationException, BusinessException
+from core.handlers import authentication_exception_handler, business_exception_handler
 
 app = FastAPI()
+
+app.add_exception_handler(BusinessException, business_exception_handler)
+app.add_exception_handler(AuthenticationException, authentication_exception_handler)
 
 app.include_router(attachments.router)
 app.include_router(clients.router)

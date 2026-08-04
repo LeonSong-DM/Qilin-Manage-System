@@ -4,20 +4,14 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user, require_admin
-from core.exception import BusinessException
 from db.session import get_db
 from models.users import Users
 from schemas.business import ClientCreate, ClientInfo, ClientUpdate
-from service.business import (
-    create_client,
-    get_client_by_id,
-    get_clients,
-    update_client,
-)
+from service.business import create_client, get_client_by_id, get_clients, update_client
 
 router = APIRouter(prefix="/clients", tags=["Client"])
 
@@ -50,10 +44,7 @@ async def create_client_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """创建客户"""
-    try:
-        return create_client(session, client_create, current_user.id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return create_client(session, client_create, current_user.id)
 
 
 @router.get("/{client_id}", response_model=ClientInfo)
@@ -63,10 +54,7 @@ async def get_client_info(
     current_user: Annotated[Users, Depends(get_current_user)],
 ):
     """获取指定客户"""
-    try:
-        return get_client_by_id(session, client_id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
+    return get_client_by_id(session, client_id)
 
 
 @router.patch("/{client_id}", response_model=ClientInfo)
@@ -77,7 +65,4 @@ async def update_client_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """更新客户"""
-    try:
-        return update_client(session, client_id, client_update, current_user.id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return update_client(session, client_id, client_update, current_user.id)

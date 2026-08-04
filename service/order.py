@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from core.enum import NumberType, OrderPriority, OrderStatus, OutboundStatus
-from core.exception import BusinessException
+from core.exception import BusinessException, NotFoundException
 from models.clients import Clients
 from models.goods_specifications import GoodsSpecifications
 from models.orders import Orders
@@ -27,7 +27,7 @@ def get_order_by_id(session: Session, order_id: int) -> Orders:
     order = session.get(Orders, order_id)
 
     if order is None:
-        raise BusinessException(f"Order {order_id} did not exists")
+        raise NotFoundException(f"Order {order_id} did not exists")
 
     return order
 
@@ -42,23 +42,23 @@ def validate_order_references(
 ) -> None:
     """校验订单关联数据存在且处理选项属于处理方式"""
     if session.get(ProcessMethods, goods_processing_method_id) is None:
-        raise BusinessException("Process method did not exists")
+        raise NotFoundException("Process method did not exists")
 
     if goods_processing_option_id is not None:
         process_option = session.get(ProcessOption, goods_processing_option_id)
         if process_option is None:
-            raise BusinessException("Process option did not exists")
+            raise NotFoundException("Process option did not exists")
         if process_option.process_method_id != goods_processing_method_id:
             raise BusinessException("Process option does not belong to process method")
 
     if session.get(GoodsSpecifications, goods_specification_id) is None:
-        raise BusinessException("Goods specification did not exists")
+        raise NotFoundException("Goods specification did not exists")
 
     if session.get(Units, goods_unit_id) is None:
-        raise BusinessException("Unit did not exists")
+        raise NotFoundException("Unit did not exists")
 
     if session.get(Clients, client_id) is None:
-        raise BusinessException("Client did not exists")
+        raise NotFoundException("Client did not exists")
 
 
 def get_orders(
@@ -242,7 +242,10 @@ def delete_order(session: Session, order_id: int) -> None:
         .where(OutBoundRecords.order_id == order_id)
     )
     outbound_record_count = session.execute(outbound_record_count_stmt).scalar_one()
-    if outbound_record_count > 0 or order.outbound_status != OutboundStatus.NOT_OUTBOUND:
+    if (
+        outbound_record_count > 0
+        or order.outbound_status != OutboundStatus.NOT_OUTBOUND
+    ):
         raise BusinessException("Order can not be deleted after outbound")
 
     try:

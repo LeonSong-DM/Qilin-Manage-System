@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from core.enum import SCHEDULE_STATUS, NumberType, OutboundStatus
-from core.exception import BusinessException
+from core.exception import BusinessException, ConflictException, NotFoundException
 from models.clients import Clients
 from models.orders import Orders
 from models.outbound_records import OutBoundRecords
@@ -37,7 +37,7 @@ from service.number_generate import get_number_by_type
 def get_order_by_order_id(session: Session, order_id: int):
     order = session.get(Orders, order_id)
     if order is None:
-        raise BusinessException("Order did not exists")
+        raise NotFoundException("Order did not exists")
 
     return order
 
@@ -124,7 +124,7 @@ def get_oubound_record_by_id(session: Session, outbound_record_id: int):
     outbound_record = session.get(OutBoundRecords, outbound_record_id)
 
     if outbound_record is None:
-        raise BusinessException("Outbound record did not exists")
+        raise NotFoundException("Outbound record did not exists")
 
     return outbound_record
 
@@ -212,7 +212,7 @@ def get_production_schedule_by_id(
     production_schedule = session.get(ProductionSchedule, production_schedule_id)
 
     if production_schedule is None:
-        raise BusinessException("Production schedule did not exists")
+        raise NotFoundException("Production schedule did not exists")
 
     return production_schedule
 
@@ -387,7 +387,7 @@ def update_production_schedule_status(
 def create_unit(session: Session, unit_create: UnitCreate, current_user_id: int):
     """创建单位"""
     if get_unit_by_name(session, unit_create.name) is not None:
-        raise BusinessException("Unit already exists")
+        raise ConflictException("Unit already exists")
 
     unit = Units(
         name=unit_create.name, updated_by=current_user_id, created_by=current_user_id
@@ -420,7 +420,7 @@ def get_unit_by_id(session: Session, unit_id: int) -> Units:
     unit = session.get(Units, unit_id)
 
     if unit is None:
-        raise BusinessException(f"Unit {unit_id} did not exist")
+        raise NotFoundException(f"Unit {unit_id} did not exist")
 
     return unit
 
@@ -432,7 +432,7 @@ def modify_unit_name(
     unit = get_unit_by_id(session, unit_id)
     existed_unit = get_unit_by_name(session, unit_modify.name)
     if existed_unit is not None and existed_unit.id != unit_id:
-        raise BusinessException("Unit already exists")
+        raise ConflictException("Unit already exists")
 
     unit.name = unit_modify.name
     unit.updated_by = current_user_id
@@ -472,7 +472,7 @@ def create_process_method(
         get_process_method_by_name(session, process_method_create.method_name)
         is not None
     ):
-        raise BusinessException("Process method already exists")
+        raise ConflictException("Process method already exists")
 
     process_method = ProcessMethods(
         method_name=process_method_create.method_name,
@@ -508,7 +508,7 @@ def get_process_method_by_id(
     process_method = session.get(ProcessMethods, process_method_id)
 
     if process_method is None:
-        raise BusinessException("The process method did not exists")
+        raise NotFoundException("The process method did not exists")
 
     return process_method
 
@@ -528,7 +528,7 @@ def update_process_method(
         existed_process_method is not None
         and existed_process_method.id != process_method_id
     ):
-        raise BusinessException("Process method already exists")
+        raise ConflictException("Process method already exists")
 
     process_method.method_name = process_method_update.method_name
     process_method.updated_by = current_user_id
@@ -582,7 +582,7 @@ def create_process_option(
         )
         is not None
     ):
-        raise BusinessException("Process option already exists")
+        raise ConflictException("Process option already exists")
 
     process_option = ProcessOption(
         option_name=process_option_created.option_name,
@@ -632,7 +632,7 @@ def get_process_option_by_id(
     process_option = session.get(ProcessOption, process_option_id)
 
     if process_option is None:
-        raise BusinessException("The process option did not exists")
+        raise NotFoundException("The process option did not exists")
 
     if process_option.process_method_id != process_method_id:
         raise BusinessException("Process option does not belong to process method")
@@ -658,7 +658,7 @@ def update_process_option(
         existed_process_option is not None
         and existed_process_option.id != process_option_id
     ):
-        raise BusinessException("Process option already exists")
+        raise ConflictException("Process option already exists")
 
     process_option.option_name = process_option_update.option_name
     process_option.updated_by = current_user_id
@@ -698,14 +698,14 @@ def delete_process_option(
 def create_client(session: Session, client_create: ClientCreate, current_user_id: int):
     """创建客户"""
     if get_client_by_name(session, client_create.client_name) is not None:
-        raise BusinessException("Client already exists")
+        raise ConflictException("Client already exists")
 
     if (
         client_create.contact_phone_number is not None
         and get_client_by_phone_number(session, client_create.contact_phone_number)
         is not None
     ):
-        raise BusinessException("Client phone number already exists")
+        raise ConflictException("Client phone number already exists")
 
     client = Clients(
         client_number=get_number_by_type(session, NumberType.CLIENT),
@@ -738,7 +738,9 @@ def get_clients(
     if client_name is not None:
         stmt = stmt.where(Clients.client_name.like(f"%{client_name}%"))
     if contact_phone_number is not None:
-        stmt = stmt.where(Clients.contact_phone_number.like(f"%{contact_phone_number}%"))
+        stmt = stmt.where(
+            Clients.contact_phone_number.like(f"%{contact_phone_number}%")
+        )
 
     return session.execute(stmt.offset(skip).limit(limit)).scalars().all()
 
@@ -748,7 +750,7 @@ def get_client_by_id(session: Session, client_id: int) -> Clients:
     client = session.get(Clients, client_id)
 
     if client is None:
-        raise BusinessException(f"Client {client_id} did not exists")
+        raise NotFoundException(f"Client {client_id} did not exists")
 
     return client
 
@@ -761,9 +763,7 @@ def get_client_by_name(session: Session, client_name: str):
 
 def get_client_by_phone_number(session: Session, contact_phone_number: str):
     """通过联系电话获取客户"""
-    stmt = select(Clients).where(
-        Clients.contact_phone_number == contact_phone_number
-    )
+    stmt = select(Clients).where(Clients.contact_phone_number == contact_phone_number)
     return session.execute(stmt).scalar_one_or_none()
 
 
@@ -778,14 +778,14 @@ def update_client(
     if "client_name" in client_update_data:
         existed_client = get_client_by_name(session, client_update_data["client_name"])
         if existed_client is not None and existed_client.id != client_id:
-            raise BusinessException("Client already exists")
+            raise ConflictException("Client already exists")
 
     if "contact_phone_number" in client_update_data:
         existed_client = get_client_by_phone_number(
             session, client_update_data["contact_phone_number"]
         )
         if existed_client is not None and existed_client.id != client_id:
-            raise BusinessException("Client phone number already exists")
+            raise ConflictException("Client phone number already exists")
 
     changed = False
 

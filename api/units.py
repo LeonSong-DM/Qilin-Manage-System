@@ -4,11 +4,10 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user, require_admin
-from core.exception import BusinessException
 from db.session import get_db
 from models.users import Users
 from schemas.business import UnitCreate, UnitInfo, UnitUpdate
@@ -41,10 +40,7 @@ async def create_unit_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """创建单位"""
-    try:
-        return create_unit(session, unit_create, current_user.id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return create_unit(session, unit_create, current_user.id)
 
 
 @router.get("/{unit_id}", response_model=UnitInfo)
@@ -54,10 +50,7 @@ async def get_unit_info(
     current_user: Annotated[Users, Depends(get_current_user)],
 ):
     """获取指定单位"""
-    try:
-        return get_unit_by_id(session, unit_id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
+    return get_unit_by_id(session, unit_id)
 
 
 @router.patch("/{unit_id}", response_model=UnitInfo)
@@ -68,10 +61,7 @@ async def update_unit_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """更新单位"""
-    try:
-        return modify_unit_name(session, unit_id, unit_update, current_user.id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return modify_unit_name(session, unit_id, unit_update, current_user.id)
 
 
 @router.delete("/{unit_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -81,7 +71,4 @@ async def delete_unit_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """删除单位"""
-    try:
-        delete_unit(session, unit_id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    delete_unit(session, unit_id)

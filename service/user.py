@@ -6,7 +6,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from core.enum import NumberType, UserRole, UserStatus
-from core.exception import BusinessException, UserExistedException
+from core.exception import (
+    BusinessException,
+    ConflictException,
+    NotFoundException,
+    UserExistedException,
+)
 from core.security import hash_password, verify_password
 from models.users import Users
 from schemas.user import (
@@ -57,7 +62,7 @@ def get_user_by_id(session: Session, user_id: int) -> Users:
     user = session.get(Users, user_id)
 
     if user is None:
-        raise BusinessException(f"User {user_id} did not exists")
+        raise NotFoundException(f"User {user_id} did not exists")
 
     return user
 
@@ -105,7 +110,7 @@ def update_user(
         user_update_data["phone_number"],
         exclude_user_id=user_id,
     ):
-        raise BusinessException("Phone number already exists")
+        raise ConflictException("Phone number already exists")
 
     changed = False
     for field, value in user_update_data.items():

@@ -5,12 +5,11 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user, require_admin
 from core.enum import OrderPriority, OrderStatus, OutboundStatus
-from core.exception import BusinessException
 from db.session import get_db
 from models.users import Users
 from schemas.order import OrderCreate, OrderInfo, OrderUpdate
@@ -41,22 +40,19 @@ async def list_orders(
     delivery_end: Annotated[datetime | None, Query()] = None,
 ):
     """获取订单列表"""
-    try:
-        return get_orders(
-            session=session,
-            skip=skip,
-            limit=limit,
-            client_id=client_id,
-            order_priority=order_priority,
-            order_status=order_status,
-            outbound_status=outbound_status,
-            goods_processing_method_id=goods_processing_method_id,
-            goods_specification_id=goods_specification_id,
-            delivery_start=delivery_start,
-            delivery_end=delivery_end,
-        )
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return get_orders(
+        session=session,
+        skip=skip,
+        limit=limit,
+        client_id=client_id,
+        order_priority=order_priority,
+        order_status=order_status,
+        outbound_status=outbound_status,
+        goods_processing_method_id=goods_processing_method_id,
+        goods_specification_id=goods_specification_id,
+        delivery_start=delivery_start,
+        delivery_end=delivery_end,
+    )
 
 
 @router.post("/", response_model=OrderInfo, status_code=status.HTTP_201_CREATED)
@@ -66,10 +62,7 @@ async def create_order_info(
     current_user: Annotated[Users, Depends(get_current_user)],
 ):
     """创建订单"""
-    try:
-        return create_order(session, order_create, current_user.id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return create_order(session, order_create, current_user.id)
 
 
 @router.get("/{order_id}", response_model=OrderInfo)
@@ -79,10 +72,7 @@ async def get_order_info(
     current_user: Annotated[Users, Depends(get_current_user)],
 ):
     """获取指定订单信息"""
-    try:
-        return get_order_by_id(session, order_id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
+    return get_order_by_id(session, order_id)
 
 
 @router.patch("/{order_id}", response_model=OrderInfo)
@@ -93,10 +83,7 @@ async def update_order_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """更新订单信息"""
-    try:
-        return update_order(session, order_id, order_update, current_user.id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return update_order(session, order_id, order_update, current_user.id)
 
 
 @router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -106,11 +93,4 @@ async def delete_order_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """删除未排产且未出库订单"""
-    try:
-        delete_order(session, order_id)
-    except BusinessException as exc:
-        if "did not exists" in exc.message:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail=exc.message
-            )
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    delete_order(session, order_id)

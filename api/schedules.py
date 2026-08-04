@@ -5,12 +5,11 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user, require_admin
 from core.enum import SCHEDULE_STATUS
-from core.exception import BusinessException
 from db.session import get_db
 from models.users import Users
 from schemas.business import (
@@ -60,12 +59,9 @@ async def create_production_schedule_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """创建排产记录"""
-    try:
-        return create_production_schedule(
-            session, production_schedule_create, current_user.id
-        )
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return create_production_schedule(
+        session, production_schedule_create, current_user.id
+    )
 
 
 @router.patch(
@@ -78,12 +74,9 @@ async def reorder_production_schedule_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """重排指定日期的排产顺序"""
-    try:
-        return reorder_production_schedules(
-            session, schedule_date, production_schedule_reorder, current_user.id
-        )
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return reorder_production_schedules(
+        session, schedule_date, production_schedule_reorder, current_user.id
+    )
 
 
 @router.get("/{production_schedule_id}", response_model=ProductionScheduleInfo)
@@ -93,10 +86,7 @@ async def get_production_schedule_info(
     current_user: Annotated[Users, Depends(get_current_user)],
 ):
     """获取指定排产记录"""
-    try:
-        return get_production_schedule_by_id(session, production_schedule_id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
+    return get_production_schedule_by_id(session, production_schedule_id)
 
 
 @router.patch("/{production_schedule_id}/status", response_model=ProductionScheduleInfo)
@@ -107,16 +97,9 @@ async def update_production_schedule_status_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """更新排产状态"""
-    try:
-        return update_production_schedule_status(
-            session,
-            production_schedule_id,
-            production_schedule_status_update,
-            current_user.id,
-        )
-    except BusinessException as exc:
-        if "did not exists" in exc.message:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail=exc.message
-            )
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return update_production_schedule_status(
+        session,
+        production_schedule_id,
+        production_schedule_status_update,
+        current_user.id,
+    )

@@ -4,12 +4,11 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from api.deps import get_current_user, require_admin
 from core.enum import UserRole, UserStatus
-from core.exception import AuthenticationException, BusinessException
 from db.session import get_db
 from models.users import Users
 from schemas.user import (
@@ -38,11 +37,7 @@ router = APIRouter(prefix="/users", tags=["User"])
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)
 async def login(session: Annotated[Session, Depends(get_db)], user_login: UserLogin):
     """登录"""
-    try:
-        token = user_authentication(session, user_login)
-    except AuthenticationException:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-
+    token = user_authentication(session, user_login)
     return LoginResponse(access_token=token)
 
 
@@ -76,10 +71,7 @@ async def create_user_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """创建用户"""
-    try:
-        return create_user(session, user_create, current_user.id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return create_user(session, user_create, current_user.id)
 
 
 @router.get("/me", response_model=UserInfo)
@@ -97,12 +89,9 @@ async def update_current_user_password_info(
     user_self_password_update: UserSelfPasswordUpdate,
 ):
     """用户修改自己的密码"""
-    try:
-        return update_current_user_password(
-            session, current_user, user_self_password_update
-        )
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return update_current_user_password(
+        session, current_user, user_self_password_update
+    )
 
 
 @router.get("/{user_id}", response_model=UserInfo)
@@ -112,10 +101,7 @@ async def get_user_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """获取指定用户信息"""
-    try:
-        return get_user_by_id(session, user_id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
+    return get_user_by_id(session, user_id)
 
 
 @router.patch("/{user_id}", response_model=UserInfo)
@@ -126,10 +112,7 @@ async def update_user_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """更新用户信息"""
-    try:
-        return update_user(session, user_id, user_update, current_user.id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return update_user(session, user_id, user_update, current_user.id)
 
 
 @router.patch("/{user_id}/password", response_model=UserInfo)
@@ -140,12 +123,7 @@ async def update_user_password_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """管理员重置用户密码"""
-    try:
-        return update_user_password(
-            session, user_id, user_password_update, current_user.id
-        )
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return update_user_password(session, user_id, user_password_update, current_user.id)
 
 
 @router.delete("/{user_id}", response_model=UserInfo)
@@ -155,7 +133,4 @@ async def delete_user_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """禁用用户"""
-    try:
-        return delete_user(session, user_id, current_user.id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return delete_user(session, user_id, current_user.id)

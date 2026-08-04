@@ -13,7 +13,7 @@ from models.number_sequence import NumberSequence
 
 def format_number(number_type: NumberType, today: date, current_count: int) -> str:
     """concatenate the traversal number string"""
-    return f"{number_type.value}{today.strftime("%Y%m%d")}{current_count+1:03d}"
+    return f"{number_type.value}{today.strftime('%Y%m%d')}{current_count + 1:03d}"
 
 
 def get_number_by_type(session: Session, number_type: NumberType) -> str:

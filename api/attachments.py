@@ -10,7 +10,6 @@ from sqlalchemy.orm import Session
 
 from api.deps import get_current_user, require_admin
 from core.enum import AttachmentType
-from core.exception import BusinessException
 from db.session import get_db
 from models.users import Users
 from schemas.business import OrderAttachmentInfo
@@ -33,13 +32,12 @@ async def list_order_attachments(
     attachment_type: AttachmentType | None = None,
 ):
     """获取订单附件列表"""
-    try:
-        return get_order_attachments(session, order_id, attachment_type)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
+    return get_order_attachments(session, order_id, attachment_type)
 
 
-@router.post("/", response_model=OrderAttachmentInfo, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=OrderAttachmentInfo, status_code=status.HTTP_201_CREATED
+)
 async def upload_order_attachment(
     session: Annotated[Session, Depends(get_db)],
     order_id: int,
@@ -48,12 +46,9 @@ async def upload_order_attachment(
     file: Annotated[UploadFile, File()],
 ):
     """上传订单附件"""
-    try:
-        return create_order_attachment(
-            session, order_id, attachment_type, file, current_user.id
-        )
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    return create_order_attachment(
+        session, order_id, attachment_type, file, current_user.id
+    )
 
 
 @router.get("/{attachment_id}", response_model=OrderAttachmentInfo)
@@ -64,10 +59,7 @@ async def get_order_attachment_info(
     current_user: Annotated[Users, Depends(get_current_user)],
 ):
     """获取指定订单附件信息"""
-    try:
-        return get_order_attachment_by_id(session, order_id, attachment_id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
+    return get_order_attachment_by_id(session, order_id, attachment_id)
 
 
 @router.get("/{attachment_id}/file")
@@ -78,22 +70,15 @@ async def get_order_attachment_file(
     current_user: Annotated[Users, Depends(get_current_user)],
 ):
     """获取指定订单附件文件"""
-    try:
-        attachment = get_order_attachment_by_id(session, order_id, attachment_id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=exc.message)
-
+    attachment = get_order_attachment_by_id(session, order_id, attachment_id)
     file_path = get_attachment_file_path(attachment)
     if not file_path.exists():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Attachment file did not exists",
         )
-
     return FileResponse(
-        path=file_path,
-        media_type=attachment.content_type,
-        filename=attachment.filename,
+        path=file_path, media_type=attachment.content_type, filename=attachment.filename
     )
 
 
@@ -105,7 +90,4 @@ async def delete_order_attachment_info(
     current_user: Annotated[Users, Depends(require_admin)],
 ):
     """删除订单附件"""
-    try:
-        delete_order_attachment(session, order_id, attachment_id)
-    except BusinessException as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+    delete_order_attachment(session, order_id, attachment_id)
