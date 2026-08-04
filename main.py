@@ -12,6 +12,7 @@ from api import (
     outbound_records,
     processes,
     schedules,
+    statistics,
     units,
     users,
 )
@@ -29,6 +30,7 @@ app.include_router(orders.router)
 app.include_router(outbound_records.router)
 app.include_router(processes.router)
 app.include_router(schedules.router)
+app.include_router(statistics.router)
 app.include_router(units.router)
 app.include_router(users.router)
 
