@@ -32,6 +32,11 @@ class UserPasswordUpdate(BaseModel):
     password: SecretStr
 
 
+class UserSelfPasswordUpdate(BaseModel):
+    old_password: SecretStr
+    new_password: SecretStr
+
+
 class UserLogin(BaseModel):
     phone_number: str = Field(min_length=11, max_length=11, examples=["13800000001"])
     password: SecretStr = Field(examples=["admin123456"])

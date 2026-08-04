@@ -18,6 +18,7 @@ from schemas.user import (
     UserInfo,
     UserLogin,
     UserPasswordUpdate,
+    UserSelfPasswordUpdate,
     UserUpdate,
 )
 from service.auth import user_authentication
@@ -26,6 +27,7 @@ from service.user import (
     delete_user,
     get_user_by_id,
     get_users,
+    update_current_user_password,
     update_user,
     update_user_password,
 )
@@ -51,9 +53,7 @@ async def list_users(
     skip: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     name: Annotated[str | None, Query(min_length=1, max_length=16)] = None,
-    phone_number: Annotated[
-        str | None, Query(min_length=1, max_length=11)
-    ] = None,
+    phone_number: Annotated[str | None, Query(min_length=1, max_length=11)] = None,
     role: Annotated[UserRole | None, Query()] = None,
     status_filter: Annotated[UserStatus | None, Query(alias="status")] = None,
 ):
@@ -88,6 +88,21 @@ async def get_current_user_info(
 ):
     """获取当前用户信息"""
     return current_user
+
+
+@router.patch("/me/password", response_model=UserInfo)
+async def update_current_user_password_info(
+    session: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[Users, Depends(get_current_user)],
+    user_self_password_update: UserSelfPasswordUpdate,
+):
+    """用户修改自己的密码"""
+    try:
+        return update_current_user_password(
+            session, current_user, user_self_password_update
+        )
+    except BusinessException as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
 
 
 @router.get("/{user_id}", response_model=UserInfo)

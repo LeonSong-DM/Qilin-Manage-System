@@ -7,9 +7,14 @@ from sqlalchemy.orm import Session
 
 from core.enum import NumberType, UserRole, UserStatus
 from core.exception import BusinessException, UserExistedException
-from core.security import hash_password
+from core.security import hash_password, verify_password
 from models.users import Users
-from schemas.user import UserCreate, UserPasswordUpdate, UserUpdate
+from schemas.user import (
+    UserCreate,
+    UserPasswordUpdate,
+    UserSelfPasswordUpdate,
+    UserUpdate,
+)
 from service.number_generate import get_number_by_type
 
 
@@ -139,6 +144,33 @@ def update_user_password(
         session.commit()
         session.refresh(user)
         return user
+    except Exception:
+        session.rollback()
+        raise
+
+
+def update_current_user_password(
+    session: Session,
+    current_user: Users,
+    user_self_password_update: UserSelfPasswordUpdate,
+) -> Users:
+    """用户修改自己的密码"""
+    old_password_verified = verify_password(
+        user_self_password_update.old_password.get_secret_value(),
+        current_user.hashed_password,
+    )
+    if not old_password_verified:
+        raise BusinessException("Incorrect old password")
+
+    current_user.hashed_password = hash_password(
+        user_self_password_update.new_password.get_secret_value()
+    )
+    current_user.updated_by = current_user.id
+
+    try:
+        session.commit()
+        session.refresh(current_user)
+        return current_user
     except Exception:
         session.rollback()
         raise
