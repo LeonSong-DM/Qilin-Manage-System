@@ -28,7 +28,6 @@ function App() {
   const [activeNav, setActiveNav] = useState(navItems[0].key)
   const [loginLoading, setLoginLoading] = useState(false)
   const [authChecking, setAuthChecking] = useState(true)
-  const activeNavItem = navItems.find((item) => item.key === activeNav) ?? navItems[0]
 
   useEffect(() => {
     let ignore = false
@@ -165,13 +164,7 @@ function App() {
           </aside>
 
           <section className="dashboard-content" aria-label="管理端内容">
-            <div className="data-panel">
-              {activeNav === 'overview' ? (
-                <header className="data-panel-header">
-                  <h1>{activeNavItem.label}</h1>
-                </header>
-              ) : null}
-            </div>
+            <div className="data-panel" />
           </section>
         </main>
       ) : (
