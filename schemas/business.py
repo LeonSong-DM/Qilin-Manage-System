@@ -2,7 +2,7 @@
 # @Date:   2026-08-01 11:44
 # @Description:  Schemas of business
 
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
@@ -34,6 +34,20 @@ class OutboundRecordCreate(BaseModel):
 class OutBoundRecordUpdate(BaseModel):
     outbound_quantity: int | None = Field(gt=0, default=None)
     outbound_weight: int | None = Field(gt=0, default=None)
+
+
+class OutboundRecordInfo(BaseModel):
+    id: int
+    outbound_number: str
+    order_id: int
+    outbound_quantity: int
+    outbound_weight: int
+    created_by: int
+    updated_by: int | None
+    create_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class ProcessMethodCreate(BaseModel):

@@ -129,6 +129,34 @@ def get_oubound_record_by_id(session: Session, outbound_record_id: int):
     return outbound_record
 
 
+def get_outbound_record_by_order_id(
+    session: Session, order_id: int, outbound_record_id: int
+) -> OutBoundRecords:
+    """通过订单 ID 和出库记录 ID 获取出库记录"""
+    get_order_by_order_id(session, order_id)
+    outbound_record = get_oubound_record_by_id(session, outbound_record_id)
+
+    if outbound_record.order_id != order_id:
+        raise BusinessException(
+            "The order ID provided dose not match the order ID in the outbound record"
+        )
+
+    return outbound_record
+
+
+def get_outbound_records_by_order_id(
+    session: Session, order_id: int, skip: int = 0, limit: int = 100
+):
+    """获取订单下的出库记录列表"""
+    get_order_by_order_id(session, order_id)
+    stmt = (
+        select(OutBoundRecords)
+        .where(OutBoundRecords.order_id == order_id)
+        .order_by(OutBoundRecords.id.desc())
+    )
+    return session.execute(stmt.offset(skip).limit(limit)).scalars().all()
+
+
 def update_outbound_record(
     session: Session,
     order_id,
@@ -171,6 +199,7 @@ def update_outbound_record(
         session.commit()
         session.refresh(order)
         session.refresh(outbound_record)
+        return outbound_record
     except Exception:
         session.rollback()
         raise
@@ -333,9 +362,7 @@ def update_production_schedule_status(
     current_user_id: int,
 ):
     """更新排产状态"""
-    production_schedule = get_production_schedule_by_id(
-        session, production_schedule_id
-    )
+    production_schedule = get_production_schedule_by_id(session, production_schedule_id)
 
     if (
         production_schedule.schedule_status
@@ -422,7 +449,9 @@ def modify_unit_name(
 def delete_unit(session: Session, unit_id: int):
     """删除单位"""
     unit = get_unit_by_id(session, unit_id)
-    stmt = select(func.count()).select_from(Orders).where(Orders.goods_unit_id == unit_id)
+    stmt = (
+        select(func.count()).select_from(Orders).where(Orders.goods_unit_id == unit_id)
+    )
     order_count = session.execute(stmt).scalar_one()
     if order_count > 0:
         raise BusinessException("Unit is used by orders")
@@ -439,7 +468,10 @@ def create_process_method(
     session: Session, process_method_create: ProcessMethodCreate, current_user_id: int
 ):
     """创建处理方式"""
-    if get_process_method_by_name(session, process_method_create.method_name) is not None:
+    if (
+        get_process_method_by_name(session, process_method_create.method_name)
+        is not None
+    ):
         raise BusinessException("Process method already exists")
 
     process_method = ProcessMethods(
@@ -469,7 +501,9 @@ def get_process_methods(session: Session, skip: int = 0, limit: int = 100):
     return session.execute(stmt.offset(skip).limit(limit)).scalars().all()
 
 
-def get_process_method_by_id(session: Session, process_method_id: int) -> ProcessMethods:
+def get_process_method_by_id(
+    session: Session, process_method_id: int
+) -> ProcessMethods:
     """通过 ID 获取处理方式"""
     process_method = session.get(ProcessMethods, process_method_id)
 
