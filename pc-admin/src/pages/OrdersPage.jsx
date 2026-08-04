@@ -399,6 +399,24 @@ function blurActiveCell(event) {
   })
 }
 
+function clearGridFocus(api) {
+  api.setState((state) => ({
+    ...state,
+    focus: {
+      cell: null,
+      columnHeader: null,
+      columnHeaderFilter: null,
+      columnGroupHeader: null,
+    },
+    tabIndex: {
+      cell: null,
+      columnHeader: state.tabIndex.columnHeader,
+      columnHeaderFilter: state.tabIndex.columnHeaderFilter,
+      columnGroupHeader: state.tabIndex.columnGroupHeader,
+    },
+  }))
+}
+
 export function OrdersPage() {
   const gridApiRef = useGridApiRef()
   const [orders, setOrders] = useState([])
@@ -421,11 +439,20 @@ export function OrdersPage() {
 
   const handleCellClick = useCallback((params, event) => {
     if (params.field === '__check__') {
+      window.requestAnimationFrame(() => {
+        if (gridApiRef.current) {
+          clearGridFocus(gridApiRef.current)
+        }
+
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur()
+        }
+      })
       return
     }
 
     blurActiveCell(event)
-  }, [])
+  }, [gridApiRef])
 
   const handleTableMouseDownCapture = useCallback((event) => {
     const columnHeader = event.target.closest?.('.MuiDataGrid-columnHeader')
@@ -456,21 +483,7 @@ export function OrdersPage() {
         }
 
         event.defaultMuiPrevented = true
-        api.setState((state) => ({
-          ...state,
-          focus: {
-            cell: null,
-            columnHeader: null,
-            columnHeaderFilter: null,
-            columnGroupHeader: null,
-          },
-          tabIndex: {
-            cell: null,
-            columnHeader: state.tabIndex.columnHeader,
-            columnHeaderFilter: state.tabIndex.columnHeaderFilter,
-            columnGroupHeader: state.tabIndex.columnGroupHeader,
-          },
-        }))
+        clearGridFocus(api)
       },
       { isFirst: true },
     )
