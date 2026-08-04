@@ -95,7 +95,7 @@ def create_outbound_record(
         )
 
     outbound_record = OutBoundRecords(
-        outbound_number=get_number_by_type(NumberType.OUTBOUND),
+        outbound_number=get_number_by_type(session, NumberType.OUTBOUND),
         order_id=order_id,
         outbound_quantity=outbound_record_create.outbound_quantity,
         outbound_weight=outbound_record_create.outbound_weight,
@@ -282,7 +282,7 @@ def create_production_schedule(
         )
 
     production_schedule = ProductionSchedule(
-        production_schedule_number=get_number_by_type(NumberType.PRODUCTION),
+        production_schedule_number=get_number_by_type(session, NumberType.PRODUCTION),
         order_id=order.id,
         quantity=production_schedule_create.quantity,
         schedule_date=production_schedule_create.schedule_date,
@@ -708,7 +708,7 @@ def create_client(session: Session, client_create: ClientCreate, current_user_id
         raise BusinessException("Client phone number already exists")
 
     client = Clients(
-        client_number=get_number_by_type(NumberType.CLIENT),
+        client_number=get_number_by_type(session, NumberType.CLIENT),
         client_name=client_create.client_name,
         contact_phone_number=client_create.contact_phone_number,
         address=client_create.address,

@@ -118,7 +118,7 @@ def create_order(session: Session, order_create: OrderCreate, current_user_id: i
     )
 
     order = Orders(
-        order_number=get_number_by_type(NumberType.ORDER),
+        order_number=get_number_by_type(session, NumberType.ORDER),
         goods_processing_method_id=order_create.goods_processing_method_id,
         goods_processing_option_id=order_create.goods_processing_option_id,
         is_closed=order_create.is_closed,

@@ -68,7 +68,7 @@ def create_user(session: Session, user_create: UserCreate, current_user_id: int)
         raise UserExistedException(user_create)
 
     # generate number
-    user_number = get_number_by_type(NumberType.USER)
+    user_number = get_number_by_type(session, NumberType.USER)
     user = Users(
         user_number=user_number,
         name=user_create.name,
