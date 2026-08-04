@@ -250,10 +250,12 @@
 }
 
 .overview-image-row {
+  --overview-image-gap: 20px;
+
   display: flex;
   align-items: stretch;
   justify-content: center;
-  gap: 0;
+  gap: var(--overview-image-gap);
   width: 100%;
 }
 
@@ -266,13 +268,13 @@
 }
 
 .overview-image-card-left {
-  flex: 0 0 60%;
-  max-width: 60%;
+  flex: 0 0 calc((100% - var(--overview-image-gap)) * 0.6);
+  max-width: calc((100% - var(--overview-image-gap)) * 0.6);
 }
 
 .overview-image-card-right {
-  flex: 0 0 40%;
-  max-width: 40%;
+  flex: 0 0 calc((100% - var(--overview-image-gap)) * 0.4);
+  max-width: calc((100% - var(--overview-image-gap)) * 0.4);
 }
 
 .overview-image-card img {
