@@ -11,6 +11,16 @@
   background: #05080b;
 }
 
+.auth-checking-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  color: #4b3d4f;
+  background: #f5f6f8;
+  font-size: 15px;
+  font-weight: 700;
+}
+
 .dashboard-page {
   display: grid;
   grid-template-columns: 284px minmax(0, 1fr);

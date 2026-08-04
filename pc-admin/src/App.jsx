@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AppstoreOutlined,
   CalendarOutlined,
@@ -12,7 +12,7 @@ import {
 } from '@ant-design/icons'
 import { Button, Checkbox, ConfigProvider, Form, Input, message } from 'antd'
 import DarkVeil from './DarkVeil'
-import { clearAuth, getStoredUser, login, storeAuth } from './services/auth'
+import { clearAuth, getCurrentUser, login, storeAuth } from './services/auth'
 import './App.css'
 
 const navItems = [
@@ -24,10 +24,38 @@ const navItems = [
 ]
 
 function App() {
-  const [currentUser, setCurrentUser] = useState(() => getStoredUser())
+  const [currentUser, setCurrentUser] = useState(null)
   const [activeNav, setActiveNav] = useState(navItems[0].key)
   const [loginLoading, setLoginLoading] = useState(false)
+  const [authChecking, setAuthChecking] = useState(true)
   const activeNavItem = navItems.find((item) => item.key === activeNav) ?? navItems[0]
+
+  useEffect(() => {
+    let ignore = false
+
+    async function restoreSession() {
+      try {
+        const user = await getCurrentUser()
+        if (!ignore && user?.role === 'admin') {
+          setCurrentUser(user)
+        }
+      } catch {
+        if (!ignore) {
+          setCurrentUser(null)
+        }
+      } finally {
+        if (!ignore) {
+          setAuthChecking(false)
+        }
+      }
+    }
+
+    restoreSession()
+
+    return () => {
+      ignore = true
+    }
+  }, [])
 
   const handleLogin = async (values) => {
     setLoginLoading(true)
@@ -59,6 +87,14 @@ function App() {
 
   const isLoggedIn = currentUser?.role === 'admin'
   const userInitial = currentUser?.name?.slice(0, 1) ?? '管'
+
+  if (authChecking) {
+    return (
+      <main className="auth-checking-page" aria-label="登录状态检查">
+        <span>正在检查登录状态</span>
+      </main>
+    )
+  }
 
   return (
     <ConfigProvider

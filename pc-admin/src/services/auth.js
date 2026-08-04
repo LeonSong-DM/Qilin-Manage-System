@@ -62,3 +62,21 @@ export async function login(payload) {
 
   return { token, user }
 }
+
+export async function getCurrentUser(token = getStoredToken()) {
+  if (!token) {
+    clearAuth()
+    return null
+  }
+
+  try {
+    return await request('/users/me', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  } catch (error) {
+    clearAuth()
+    throw error
+  }
+}
