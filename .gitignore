@@ -14,6 +14,8 @@ experiments/
 # Frontend dependencies and build outputs
 node_modules/
 dist-ssr/
+.vite/
+coverage/
 *.local
 
 # Logs
