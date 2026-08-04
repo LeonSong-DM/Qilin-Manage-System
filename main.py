@@ -3,6 +3,7 @@
 # @Description:
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 import models  # noqa: F401
 from api import (
@@ -16,10 +17,19 @@ from api import (
     units,
     users,
 )
+from core.config import settings
 from core.exception import AuthenticationException, BusinessException
 from core.handlers import authentication_exception_handler, business_exception_handler
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.add_exception_handler(BusinessException, business_exception_handler)
 app.add_exception_handler(AuthenticationException, authentication_exception_handler)
