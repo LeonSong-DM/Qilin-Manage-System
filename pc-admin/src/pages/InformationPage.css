@@ -1,0 +1,341 @@
+.information-page {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	min-width: 0;
+	min-height: calc(100vh - 84px);
+	padding: 24px;
+	border-radius: 18px;
+	background: #f8fafb;
+	color: #172320;
+}
+
+.information-page-header {
+	margin-bottom: 22px;
+}
+
+.information-page-header h1 {
+	margin: 0;
+	color: #172320;
+	font-size: 28px;
+	font-weight: 900;
+	line-height: 1.2;
+}
+
+.information-tabs-root {
+	display: grid;
+	grid-template-columns: 214px minmax(0, 1fr);
+	align-items: stretch;
+	flex: 1;
+	gap: 20px;
+	min-height: 0;
+}
+
+.information-tabs-list {
+	display: flex !important;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 6px;
+	height: max-content;
+	padding: 8px;
+	border: 1px solid rgba(145, 158, 171, 0.14);
+	border-radius: 14px;
+	background: #ffffff;
+	box-shadow: 0 10px 24px rgba(17, 24, 39, 0.06);
+}
+
+.information-tab {
+	display: flex !important;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 10px;
+	width: 100%;
+	min-height: 46px;
+	padding: 0 14px !important;
+	border: 0 !important;
+	border-radius: 9px !important;
+	color: #637381 !important;
+	background: transparent !important;
+	font-family: "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+	font-size: 14px !important;
+	font-weight: 800 !important;
+	text-align: left;
+	transition:
+	color 0.18s ease,
+	background 0.18s ease;
+}
+
+.information-tab:hover {
+	color: #007867 !important;
+	background: #eefaf5 !important;
+}
+
+.information-tab[aria-selected="true"] {
+	color: #007867 !important;
+	background: #e8f7f0 !important;
+	box-shadow: inset 3px 0 0 #00a76f;
+}
+
+.information-tabs-panels {
+	min-width: 0;
+	min-height: 0;
+	overflow: auto;
+}
+
+.information-tab-panel {
+	min-width: 0;
+	height: 100%;
+}
+
+.information-form {
+	min-height: 100%;
+	padding: 24px;
+	border: 1px solid rgba(145, 158, 171, 0.14);
+	border-radius: 16px;
+	background: #ffffff;
+	box-shadow: 0 12px 28px rgba(17, 24, 39, 0.07);
+}
+
+.information-form-heading {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 18px;
+	padding-bottom: 18px;
+	border-bottom: 1px solid rgba(145, 158, 171, 0.14);
+}
+
+.information-form-heading h3 {
+	margin: 0;
+	color: #212b36;
+	font-size: 20px;
+	font-weight: 900;
+}
+
+.information-form-heading p {
+	margin: 7px 0 0;
+	color: #89939b;
+	font-size: 13px;
+	font-weight: 650;
+}
+
+.information-form-count {
+	flex: 0 0 auto;
+	padding: 6px 10px;
+	border-radius: 999px;
+	color: #007867;
+	background: #e8f7f0;
+	font-size: 12px;
+	font-weight: 850;
+}
+
+.information-record-list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	align-items: start;
+	gap: 18px;
+	padding-top: 20px;
+}
+
+.information-form-users .information-form-heading {
+	padding-bottom: 10px;
+}
+
+.information-form-users .information-record-list {
+	padding-top: 10px;
+}
+
+.information-table-wrap {
+	grid-column: 1 / -1;
+	min-width: 0;
+	overflow-x: auto;
+}
+
+.information-table-wrap table {
+	width: 100%;
+	min-width: 620px;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.information-table-wrap th {
+	padding: 12px 14px;
+	border-bottom: 1px solid #dfe9e8;
+	color: #637381;
+	background: #f7faf9;
+	font-size: 12px;
+	font-weight: 850;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.information-table-wrap td {
+	padding: 15px 14px;
+	border-bottom: 1px solid #eef2f3;
+	color: #637381;
+	font-weight: 650;
+	white-space: nowrap;
+}
+
+.information-table-wrap tbody tr:hover {
+	background: #f8fcfa;
+}
+
+.information-primary-cell {
+	color: #212b36 !important;
+	font-weight: 850 !important;
+}
+
+.information-employee-name {
+	color: #212b36 !important;
+	font-weight: 850 !important;
+}
+
+.information-user-status {
+	display: inline-flex;
+	align-items: center;
+	min-height: 24px;
+	padding: 0 9px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 850;
+}
+
+.information-user-status-normal {
+	color: #25604b;
+	padding-right: 0;
+	padding-left: 0;
+	background: transparent;
+}
+
+.information-user-status-forbidden {
+	color: #8a1f1f;
+	background: #fdecec;
+}
+
+.information-record {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px 16px;
+	min-width: 0;
+	padding: 16px;
+	border: 1px solid #eef2f3;
+	border-radius: 12px;
+	background: #fbfcfd;
+}
+
+.information-record .information-field:first-child {
+	grid-column: 1 / -1;
+}
+
+.information-field {
+	min-width: 0;
+}
+
+.information-field label {
+	color: #89939b;
+	font-size: 12px;
+	font-weight: 750;
+}
+
+.information-field input {
+	min-width: 0;
+	min-height: 38px;
+	margin-top: 6px;
+	padding: 0 11px;
+	border: 1px solid #e1e9ea;
+	border-radius: 8px;
+	color: #212b36;
+	background: #ffffff;
+	font-size: 14px;
+	font-weight: 700;
+	outline: none;
+}
+
+.information-loading {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	height: 100%;
+	min-height: 300px;
+	color: #637381;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.information-loading-spinner {
+	display: inline-block;
+	width: 22px;
+	height: 22px;
+	border: 3px solid #d9efe6;
+	border-top-color: #00a76f;
+	border-radius: 50%;
+	animation: information-loading-spin 0.8s linear infinite;
+}
+
+@keyframes information-loading-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (max-width: 900px) {
+	.information-tabs-root {
+		grid-template-columns: 180px minmax(0, 1fr);
+		gap: 14px;
+	}
+
+	.information-form {
+		padding: 20px;
+	}
+
+	.information-record-list {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 680px) {
+	.information-page {
+		padding: 16px;
+	}
+
+	.information-page-header h1 {
+		font-size: 24px;
+	}
+
+	.information-tabs-root {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.information-tabs-list {
+		flex-direction: row;
+		overflow-x: auto;
+	}
+
+	.information-tab {
+		flex: 0 0 auto;
+		width: auto;
+		min-width: 112px;
+		justify-content: center;
+		padding: 0 12px !important;
+	}
+
+	.information-tab[aria-selected="true"] {
+		box-shadow: inset 0 -3px 0 #00a76f;
+	}
+
+	.information-tabs-panels {
+		overflow: visible;
+	}
+
+	.information-form {
+		padding: 18px;
+	}
+
+	.information-record {
+		grid-template-columns: 1fr;
+	}
+}
