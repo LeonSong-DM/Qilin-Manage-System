@@ -25,40 +25,77 @@
 	box-shadow: 0 16px 38px rgba(17, 24, 39, 0.08);
 }
 
-.orders-table-header {
+.orders-grid-toolbar {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	min-height: 42px;
-	margin-bottom: 12px;
+	gap: 16px;
+	min-height: 48px;
+	padding: 8px 12px;
+	border-bottom: 1px solid #eef2f7;
+	background: #ffffff;
 }
 
-.orders-table-header div {
+.orders-condition-select {
+	width: 180px;
+	max-width: 100%;
+}
+
+.orders-toolbar-controls {
 	display: flex;
-	align-items: baseline;
+	align-items: center;
+	flex: 0 0 auto;
 	gap: 10px;
+	min-width: 0;
 }
 
-.orders-table-header span {
-	color: #111827;
-	font-size: 22px;
-	font-weight: 850;
+.orders-batch-schedule-button {
+	min-width: 92px !important;
+	height: 40px !important;
+	border-radius: 8px !important;
+	color: #ffffff !important;
+	background: #00a76f !important;
+	font-size: 14px !important;
+	font-weight: 800 !important;
+	white-space: nowrap;
 }
 
-.orders-table-header strong {
-	color: rgba(17, 24, 39, 0.46);
-	font-size: 15px;
-	font-weight: 800;
+.orders-batch-schedule-button:hover {
+	background: #007867 !important;
 }
 
-.orders-error {
-	margin-bottom: 12px;
-	padding: 10px 12px;
-	border-radius: 10px;
-	color: #8a1f1f;
-	background: rgba(255, 235, 235, 0.9);
-	font-size: 15px;
+.orders-grid-toolbar .MuiDataGrid-toolbarContainer {
+	flex: 1 1 auto;
+	min-height: 32px;
+	padding: 0;
+	border-bottom: 0;
+}
+
+.orders-condition-select .MuiInputLabel-root {
+	color: rgba(17, 24, 39, 0.58);
+	font-size: 14px;
 	font-weight: 700;
+}
+
+.orders-condition-select .MuiOutlinedInput-root {
+	border-radius: 10px;
+	color: #111827;
+	background: #ffffff;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.orders-condition-select .MuiOutlinedInput-notchedOutline {
+	border-color: #dbe3e5;
+}
+
+.orders-condition-select .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+.orders-condition-select .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+	border-color: #00a76f;
+}
+
+.orders-condition-select .MuiSvgIcon-root {
+	color: #637381;
 }
 
 .orders-table-shell .orders-data-grid {
@@ -75,6 +112,104 @@
 		BlinkMacSystemFont,
 		"Segoe UI",
 		sans-serif;
+}
+
+/* Keep DataGrid's scroll controls discoverable when the column set overflows. */
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--horizontal {
+	display: inline-block !important;
+	height: 14px;
+	min-height: 14px;
+	border-top: 1px solid #e7edf0;
+	background: #f8fafb;
+	visibility: visible !important;
+	opacity: 1 !important;
+	scrollbar-width: auto;
+	scrollbar-color: #9aada9 #edf2f3;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--horizontal > div {
+	height: 14px;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--horizontal::-webkit-scrollbar {
+	height: 14px;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--horizontal::-webkit-scrollbar-track {
+	border-radius: 999px;
+	background: #edf2f3;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--horizontal::-webkit-scrollbar-thumb {
+	min-width: 72px;
+	border: 3px solid #edf2f3;
+	border-radius: 999px;
+	background: #9aada9;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--horizontal::-webkit-scrollbar-thumb:hover {
+	background: #6f8984;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--vertical {
+	display: inline-block !important;
+	width: 12px;
+	min-width: 12px;
+	background: #f8fafb;
+	visibility: visible !important;
+	opacity: 1 !important;
+	scrollbar-width: auto;
+	scrollbar-color: #9aada9 #edf2f3;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--vertical::-webkit-scrollbar {
+	width: 12px;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--vertical::-webkit-scrollbar-track {
+	border-radius: 999px;
+	background: #edf2f3;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--vertical::-webkit-scrollbar-thumb {
+	border: 3px solid #edf2f3;
+	border-radius: 999px;
+	background: #9aada9;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--vertical::-webkit-scrollbar-thumb:hover {
+	background: #6f8984;
+}
+
+/* Use the grid's real scroller for dragging so the thumb and table position never diverge. */
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--horizontal,
+.orders-table-shell .orders-data-grid .MuiDataGrid-scrollbar--vertical {
+	display: none !important;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-virtualScroller {
+	scrollbar-width: auto !important;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-virtualScroller::-webkit-scrollbar {
+	display: block !important;
+	width: 12px;
+	height: 14px;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-virtualScroller::-webkit-scrollbar-track {
+	border-radius: 999px;
+	background: #edf2f3;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb {
+	border: 3px solid #edf2f3;
+	border-radius: 999px;
+	background: #9aada9;
+}
+
+.orders-table-shell .orders-data-grid .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover {
+	background: #6f8984;
 }
 
 .orders-table-shell .MuiDataGrid-columnHeaders,
@@ -227,9 +362,6 @@
 
 .orders-table-shell .MuiDataGrid-toolbarContainer {
 	justify-content: flex-end;
-	min-height: 48px;
-	padding: 10px 12px 8px;
-	border-bottom: 1px solid #eef2f7;
 }
 
 .orders-table-shell .MuiInputBase-root {
@@ -298,6 +430,11 @@
 .orders-status-fully_outbound {
 	color: #24614c;
 	background: #e7f5ee;
+}
+
+.orders-delivery-distance-overdue {
+	color: #c62828;
+	font-weight: 800;
 }
 
 .orders-row-action {
@@ -506,6 +643,16 @@
 	margin: 0;
 }
 
+.client-copy-button {
+	color: #637381 !important;
+	background: transparent !important;
+}
+
+.client-copy-button:hover {
+	color: #00a76f !important;
+	background: rgba(0, 167, 111, 0.08) !important;
+}
+
 .order-save-button {
 	border-radius: 8px !important;
 	background: #00a76f !important;
@@ -525,7 +672,6 @@
 	gap: 10px;
 }
 
-.order-edit-button,
 .order-cancel-button {
 	border: 0;
 	color: #00a76f !important;
@@ -535,10 +681,19 @@
 	cursor: pointer;
 }
 
-.order-edit-button:hover,
 .order-cancel-button:hover {
 	color: #007867 !important;
 	background: transparent !important;
+}
+
+.order-edit-icon-button {
+	color: #00a76f !important;
+	background: transparent !important;
+}
+
+.order-edit-icon-button:hover {
+	color: #007867 !important;
+	background: rgba(0, 167, 111, 0.08) !important;
 }
 
 .order-detail-card-content {
@@ -588,11 +743,22 @@
 	row-gap: 12px;
 }
 
+.order-read-section-status .order-read-section-body {
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	column-gap: 20px;
+}
+
+.order-read-section-time .order-read-section-body {
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	column-gap: 24px;
+}
+
 .order-read-row {
 	display: grid;
-	grid-template-columns: 86px minmax(0, 1fr);
+	grid-template-columns: max-content minmax(0, 1fr);
 	align-items: baseline;
-	column-gap: 30px;
+	column-gap: 16px;
+	min-width: 0;
 }
 
 .order-read-row span {
@@ -608,6 +774,13 @@
 	font-size: 15px;
 	font-weight: 650;
 	overflow-wrap: anywhere;
+}
+
+.order-read-row-status strong,
+.order-read-row-time strong {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .order-read-row strong em {
@@ -963,6 +1136,16 @@
 
 	.order-read-section-body {
 		grid-template-columns: 1fr;
+		column-gap: 0;
+	}
+
+	.order-read-section-status .order-read-section-body {
+		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		column-gap: 16px;
+	}
+
+	.order-read-section-time .order-read-section-body {
+		grid-template-columns: 1fr;
 	}
 
 	.order-summary-content {
@@ -972,5 +1155,31 @@
 	.order-summary-item {
 		padding: 0;
 		border-left: 0;
+	}
+}
+
+@media (max-width: 480px) {
+	.order-detail-page {
+		padding: 14px;
+	}
+
+	.order-detail-card-content {
+		padding: 18px 16px 20px !important;
+	}
+
+	.order-detail-card-header {
+		padding: 18px 16px 14px !important;
+	}
+
+	.order-read-row {
+		column-gap: 12px;
+	}
+
+	.order-read-row span {
+		font-size: 14px;
+	}
+
+	.order-read-row strong {
+		font-size: 14px;
 	}
 }

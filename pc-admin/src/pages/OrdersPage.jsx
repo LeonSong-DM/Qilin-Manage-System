@@ -4,20 +4,43 @@ import 'dayjs/locale/zh-cn'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
+import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
+import FormControl from '@mui/material/FormControl'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import IconButton from '@mui/material/IconButton'
+import InputLabel from '@mui/material/InputLabel'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
+import Select from '@mui/material/Select'
+import Snackbar from '@mui/material/Snackbar'
 import TextField from '@mui/material/TextField'
 import { NumberField } from '@base-ui/react/number-field'
-import { DataGrid, useGridApiRef } from '@mui/x-data-grid'
+import {
+  DataGrid,
+  GridToolbarColumnsButton,
+  GridToolbarContainer,
+  GridToolbarDensitySelector,
+  GridToolbarExport,
+  GridToolbarQuickFilter,
+  useGridApiRef,
+} from '@mui/x-data-grid'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { zhCN } from '@mui/x-date-pickers/locales'
-import { ArrowLeft, MapPin, MoreHorizontal, Phone, UserRound } from 'lucide-react'
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  MapPin,
+  MoreHorizontal,
+  Pencil,
+  Phone,
+  UserRound,
+} from 'lucide-react'
 import { getOrderReferences } from '../services/businessMeta'
 import {
   getOrders,
@@ -52,6 +75,67 @@ function formatDate(value) {
     month: '2-digit',
     day: '2-digit',
   }).format(new Date(value))
+}
+
+function getDeliveryDistanceDays(value) {
+  if (!value) {
+    return null
+  }
+
+  const deliveryDate = dayjs(value).startOf('day')
+  const today = dayjs().startOf('day')
+  return deliveryDate.diff(today, 'day')
+}
+
+function formatDeliveryDistance(value) {
+  const distance = getDeliveryDistanceDays(value)
+
+  if (distance === null) {
+    return '-'
+  }
+
+  if (distance === 0) {
+    return '今天'
+  }
+
+  return distance > 0 ? `${distance}天` : `逾期 ${Math.abs(distance)}天`
+}
+
+function getFriendlyOrderError(error, fallback) {
+  const message = error?.message ?? String(error ?? '')
+
+  if (/401|登录|token|认证|过期/i.test(message)) {
+    return '登录状态已失效，请重新登录后再试。'
+  }
+
+  if (/network|fetch|网络|连接/i.test(message)) {
+    return '网络连接异常，请检查网络后重试。'
+  }
+
+  if (/交付时间|delivery|日期/i.test(message)) {
+    return '交付时间格式不正确，请检查后重试。'
+  }
+
+  if (/数量|重量|规格|单位|处理方法|处理选项/i.test(message)) {
+    return '订单填写内容不完整或格式不正确，请检查后重试。'
+  }
+
+  return fallback
+}
+
+function OrderErrorSnackbar({ message, onClose }) {
+  return (
+    <Snackbar
+      open={Boolean(message)}
+      autoHideDuration={3000}
+      onClose={onClose}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+    >
+      <Alert onClose={onClose} severity="error" variant="filled" sx={{ width: '100%' }}>
+        {message}
+      </Alert>
+    </Snackbar>
+  )
 }
 
 function StatusPill({ children, tone = 'default' }) {
@@ -315,9 +399,9 @@ function DateEditField({ className = '', label, value, onChange }) {
   )
 }
 
-function DetailReadRow({ label, value, suffix }) {
+function DetailReadRow({ className = '', label, value, suffix }) {
   return (
-    <div className="order-read-row">
+    <div className={`order-read-row ${className}`.trim()}>
       <span>{label}</span>
       <strong>
         {value ?? '-'}
@@ -341,6 +425,46 @@ function ClientReadRow({ icon: Icon, value, emphasis = false }) {
     <div className={`client-read-row${emphasis ? ' is-emphasis' : ''}`}>
       <Icon size={18} strokeWidth={2.2} aria-hidden="true" />
       <strong>{value ?? '-'}</strong>
+    </div>
+  )
+}
+
+function OrdersToolbar({
+  displayCondition,
+  onDisplayConditionChange,
+  onBatchSchedule,
+}) {
+  return (
+    <div className="orders-grid-toolbar">
+      <div className="orders-toolbar-controls">
+        <FormControl className="orders-condition-select" size="small">
+          <InputLabel id="orders-display-condition-label">展示条件</InputLabel>
+          <Select
+            labelId="orders-display-condition-label"
+            label="展示条件"
+            value={displayCondition}
+            onChange={(event) => onDisplayConditionChange(event.target.value)}
+          >
+            <MenuItem value="all">全部订单</MenuItem>
+            <MenuItem value="priority">优先级高</MenuItem>
+            <MenuItem value="delivery">交货时间近</MenuItem>
+            <MenuItem value="unscheduled">未排产</MenuItem>
+          </Select>
+        </FormControl>
+        <Button
+          className="orders-batch-schedule-button"
+          size="small"
+          onClick={onBatchSchedule}
+        >
+          批量排产
+        </Button>
+      </div>
+      <GridToolbarContainer>
+        <GridToolbarColumnsButton />
+        <GridToolbarDensitySelector />
+        <GridToolbarExport />
+        <GridToolbarQuickFilter />
+      </GridToolbarContainer>
     </div>
   )
 }
@@ -420,6 +544,7 @@ function clearGridFocus(api) {
 export function OrdersPage() {
   const gridApiRef = useGridApiRef()
   const [orders, setOrders] = useState([])
+  const [displayCondition, setDisplayCondition] = useState('all')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [activeMenu, setActiveMenu] = useState(null)
@@ -434,6 +559,7 @@ export function OrdersPage() {
   const [editingOrder, setEditingOrder] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [clientInfoCopied, setClientInfoCopied] = useState(false)
 
   const activeMenuOpen = Boolean(activeMenu)
 
@@ -535,7 +661,7 @@ export function OrdersPage() {
         }
       } catch (loadError) {
         if (!ignore) {
-          setError(loadError.message || '订单数据加载失败')
+          setError(getFriendlyOrderError(loadError, '订单数据加载失败，请稍后重试。'))
         }
       } finally {
         if (!ignore) {
@@ -570,6 +696,7 @@ export function OrdersPage() {
     setOrderForm(order ? createOrderForm(order) : null)
     setEditingOrder(false)
     setSaveError('')
+    setClientInfoCopied(false)
     closeMenu()
   }, [activeMenu, closeMenu])
 
@@ -635,21 +762,116 @@ export function OrdersPage() {
         ),
       )
     } catch (saveOrderError) {
-      setSaveError(saveOrderError.message || '订单保存失败')
+      setSaveError(
+        getFriendlyOrderError(saveOrderError, '订单保存失败，请检查填写内容后重试。'),
+      )
     } finally {
       setSaving(false)
     }
   }, [detailOrder, orderForm, referenceMaps])
+
+  const copyClientInfo = useCallback(async () => {
+    if (!detailOrder) {
+      return
+    }
+
+    const clientInfo = [
+      `客户公司:${detailOrder.client_name ?? '-'}`,
+      `客户电话: ${detailOrder.client_phone_number ?? '-'}`,
+      `联系方式: ${detailOrder.client_address ?? '-'}`,
+    ].join('\n')
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(clientInfo)
+      } else {
+        const textArea = document.createElement('textarea')
+        textArea.value = clientInfo
+        textArea.setAttribute('readonly', '')
+        textArea.style.position = 'fixed'
+        textArea.style.opacity = '0'
+        document.body.appendChild(textArea)
+        textArea.select()
+        const copied = document.execCommand('copy')
+        document.body.removeChild(textArea)
+
+        if (!copied) {
+          throw new Error('复制失败')
+        }
+      }
+
+      setClientInfoCopied(true)
+      window.setTimeout(() => setClientInfoCopied(false), 1600)
+    } catch {
+      setClientInfoCopied(false)
+    }
+  }, [detailOrder])
+
+  const displayedOrders = useMemo(() => {
+    const nextOrders = [...orders]
+
+    if (displayCondition === 'unscheduled') {
+      return nextOrders.filter((order) => order.order_status === 'scheduling')
+    }
+
+    if (displayCondition === 'priority') {
+      const priorityRank = { p0: 0, p1: 1, p2: 2, p3: 3 }
+
+      return nextOrders.sort(
+        (left, right) =>
+          (priorityRank[left.order_priority] ?? Number.MAX_SAFE_INTEGER) -
+          (priorityRank[right.order_priority] ?? Number.MAX_SAFE_INTEGER),
+      )
+    }
+
+    if (displayCondition === 'delivery') {
+      return nextOrders.sort((left, right) => {
+        const leftTime = left.goods_delivery_time
+          ? new Date(left.goods_delivery_time).getTime()
+          : Number.MAX_SAFE_INTEGER
+        const rightTime = right.goods_delivery_time
+          ? new Date(right.goods_delivery_time).getTime()
+          : Number.MAX_SAFE_INTEGER
+
+        return leftTime - rightTime
+      })
+    }
+
+    return nextOrders
+  }, [displayCondition, orders])
 
   const columns = useMemo(
     () => {
       const sortableFields = new Set([
         'order_priority',
         'goods_delivery_time',
-        'create_at',
       ])
 
       return [
+      {
+        field: 'actions',
+        headerName: '操作',
+        width: 76,
+        align: 'center',
+        headerAlign: 'center',
+        cellClassName: 'orders-actions-cell',
+        disableColumnMenu: true,
+        filterable: false,
+        renderCell: (params) => (
+          <button
+            className="orders-row-action"
+            type="button"
+            aria-label="订单操作"
+            onMouseDown={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+            }}
+            onClick={(event) => openOrderMenu(event, params.row)}
+          >
+            <MoreHorizontal size={18} strokeWidth={2.3} />
+          </button>
+        ),
+      },
       {
         field: 'client_name',
         headerName: '客户名称',
@@ -722,35 +944,26 @@ export function OrdersPage() {
         valueFormatter: (value) => formatDateTime(value),
       },
       {
-        field: 'create_at',
-        headerName: '创建时间',
-        minWidth: 160,
-        flex: 1,
-        valueFormatter: (value) => formatDateTime(value),
-      },
-      {
-        field: 'actions',
-        headerName: '',
-        width: 62,
+        field: 'delivery_distance',
+        headerName: '距离交货',
+        width: 112,
         align: 'center',
         headerAlign: 'center',
-        cellClassName: 'orders-actions-cell',
-        disableColumnMenu: true,
-        filterable: false,
-        renderCell: (params) => (
-          <button
-            className="orders-row-action"
-            type="button"
-            aria-label="订单操作"
-            onMouseDown={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
-            }}
-            onClick={(event) => openOrderMenu(event, params.row)}
-          >
-            <MoreHorizontal size={18} strokeWidth={2.3} />
-          </button>
-        ),
+        renderCell: (params) => {
+          const deliveryDistance = getDeliveryDistanceDays(params.row.goods_delivery_time)
+
+          return (
+            <span
+              className={
+                deliveryDistance !== null && deliveryDistance < 0
+                  ? 'orders-delivery-distance-overdue'
+                  : ''
+              }
+            >
+              {formatDeliveryDistance(params.row.goods_delivery_time)}
+            </span>
+          )
+        },
       },
     ].map((column) => ({
       ...column,
@@ -863,18 +1076,20 @@ export function OrdersPage() {
                       </Button>
                     </div>
                   ) : (
-                    <button
-                      className="order-edit-button"
+                    <IconButton
+                      className="order-edit-icon-button"
+                      size="small"
+                      aria-label="编辑订单"
+                      title="编辑订单"
                       type="button"
                       onClick={() => setEditingOrder(true)}
                     >
-                      编辑
-                    </button>
+                      <Pencil size={18} strokeWidth={2.2} />
+                    </IconButton>
                   )
                 }
               />
               <CardContent className="order-detail-card-content">
-                {saveError ? <div className="orders-error">{saveError}</div> : null}
                 {editingOrder ? (
                   <div className="order-detail-grid">
                     <DetailField
@@ -965,19 +1180,39 @@ export function OrdersPage() {
                       <DetailReadRow label="优先级" value={detailOrder.order_priority_label} />
                     </DetailSection>
 
-                    <DetailSection title="状态">
-                      <DetailReadRow label="订单状态" value={detailOrder.order_status_label} />
-                      <DetailReadRow label="出库状态" value={detailOrder.outbound_status_label} />
-                      <DetailReadRow label="剩余数量" value={detailOrder.goods_remaining_quantity} />
+                    <DetailSection title="状态" className="order-read-section-status">
+                      <DetailReadRow
+                        className="order-read-row-status"
+                        label="订单状态"
+                        value={detailOrder.order_status_label}
+                      />
+                      <DetailReadRow
+                        className="order-read-row-status"
+                        label="出库状态"
+                        value={detailOrder.outbound_status_label}
+                      />
+                      <DetailReadRow
+                        className="order-read-row-status"
+                        label="剩余数量"
+                        value={detailOrder.goods_remaining_quantity}
+                      />
                     </DetailSection>
 
                     <DetailSection title="备注" className="order-read-section-wide">
                       <p className="order-read-note">{detailOrder.order_remarks || '-'}</p>
                     </DetailSection>
 
-                    <DetailSection title="时间">
-                      <DetailReadRow label="交付时间" value={formatDateTime(detailOrder.goods_delivery_time)} />
-                      <DetailReadRow label="创建时间" value={formatDateTime(detailOrder.create_at)} />
+                    <DetailSection title="时间" className="order-read-section-time">
+                      <DetailReadRow
+                        className="order-read-row-time"
+                        label="交付时间"
+                        value={formatDateTime(detailOrder.goods_delivery_time)}
+                      />
+                      <DetailReadRow
+                        className="order-read-row-time"
+                        label="创建时间"
+                        value={formatDateTime(detailOrder.create_at)}
+                      />
                     </DetailSection>
                   </div>
                 )}
@@ -988,6 +1223,17 @@ export function OrdersPage() {
               <CardHeader
                 className="order-detail-card-header"
                 title="客户信息"
+                action={
+                  <IconButton
+                    className="client-copy-button"
+                    size="small"
+                    aria-label="复制客户信息"
+                    title="复制客户信息"
+                    onClick={copyClientInfo}
+                  >
+                    {clientInfoCopied ? <Check size={18} /> : <Copy size={18} />}
+                  </IconButton>
+                }
               />
               <CardContent className="order-detail-card-content">
                 <div className="client-read-list">
@@ -1003,6 +1249,7 @@ export function OrdersPage() {
             </Card>
           </div>
         </div>
+        <OrderErrorSnackbar message={saveError} onClose={() => setSaveError('')} />
       </section>
     )
   }
@@ -1010,22 +1257,22 @@ export function OrdersPage() {
   return (
     <section className="orders-page" aria-label="订单列表">
       <div className="orders-table-shell" onMouseDownCapture={handleTableMouseDownCapture}>
-        <div className="orders-table-header">
-          <div>
-            <span>订单管理</span>
-            <strong>{orders.length}</strong>
-          </div>
-        </div>
-
-        {error ? <div className="orders-error">{error}</div> : null}
-
         <DataGrid
           apiRef={gridApiRef}
           className="orders-data-grid"
           columns={columns}
-          rows={orders}
+          rows={displayedOrders}
           loading={loading}
           showToolbar
+          slots={{ toolbar: OrdersToolbar }}
+          slotProps={{
+            toolbar: {
+              displayCondition,
+              onDisplayConditionChange: setDisplayCondition,
+              onBatchSchedule: () =>
+                setError('批量排产失败：当前为演示功能，暂未连接排产服务。'),
+            },
+          }}
           checkboxSelection
           cellSelection={false}
           disableColumnMenu
@@ -1067,6 +1314,7 @@ export function OrdersPage() {
           </MenuItem>
           <MenuItem onClick={viewOrderDetail}>查看详情</MenuItem>
         </Menu>
+        <OrderErrorSnackbar message={error} onClose={() => setError('')} />
       </div>
     </section>
   )
