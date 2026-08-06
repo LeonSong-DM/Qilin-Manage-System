@@ -15,6 +15,9 @@ import DarkVeil from './DarkVeil'
 import dataViewLeft from './assets/data_view_left.jpg'
 import dataViewRight from './assets/data_view_right.jpg'
 import { OrdersPage } from './pages/OrdersPage'
+import { OutboundPage } from './pages/OutboundPage'
+import { SchedulePage } from './pages/SchedulePage'
+import { InformationPage } from './pages/InformationPage'
 import { clearAuth, getCurrentUser, login, storeAuth } from './services/auth'
 import { AUTH_EXPIRED_EVENT } from './services/http'
 import './App.css'
@@ -278,6 +281,9 @@ function App() {
                   </>
                 ) : null}
                 {activeNav === 'orders' ? <OrdersPage /> : null}
+                {activeNav === 'schedule' ? <SchedulePage /> : null}
+                {activeNav === 'outbound' ? <OutboundPage /> : null}
+                {activeNav === 'information' ? <InformationPage /> : null}
               </div>
             </div>
           </section>
