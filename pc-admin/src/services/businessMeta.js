@@ -34,6 +34,15 @@ export async function getProcessMethods({ skip = 0, limit = 100 } = {}) {
   return authorizedRequest(`/process-methods/?${params.toString()}`)
 }
 
+export async function getUsers({ skip = 0, limit = 100 } = {}) {
+  const params = new URLSearchParams({
+    skip: String(skip),
+    limit: String(limit),
+  })
+
+  return authorizedRequest(`/users/?${params.toString()}`)
+}
+
 export async function getProcessOptions(processMethodId, { skip = 0, limit = 100 } = {}) {
   const params = new URLSearchParams({
     skip: String(skip),

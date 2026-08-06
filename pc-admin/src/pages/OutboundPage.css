@@ -1,0 +1,8 @@
+.outbound-page {
+	width: 100%;
+	min-width: 0;
+}
+
+.outbound-grid-toolbar .MuiDataGrid-toolbarContainer {
+	justify-content: flex-end;
+}
